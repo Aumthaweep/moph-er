@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="th" class="h-full bg-slate-950"><head>
+<html lang="th" class="h-full bg-slate-950">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MOPH ED Triage Workstation - โรงพยาบาลสบปราบ</title>
@@ -10,23 +11,18 @@
   <!-- Google Fonts Prompt -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Google Sheets Real-time Backend Script -->
+  <!-- Google Sheets Sync Script -->
   <script>
-    // Google Apps Script Web App URL ที่เชื่อมต่อกับ Google Sheets ของโรงพยาบาล
     const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzXLw2exSbddm_CBdh0-FfSbV3QrQjaFxCMfKNpepoEqzE3eYKA4RmMAtKAYX4XJsMD/exec";
-
     window.triageHistoryList = [];
 
-    // ฟังก์ชันดึงข้อมูลจาก Google Sheets แบบ Real-time (ทำงานทุกๆ 4 วินาที)
     async function fetchPatientsFromGoogleSheets() {
       try {
         const response = await fetch(GOOGLE_SHEETS_API_URL + "?action=get");
         const data = await response.json();
-        
         if (Array.isArray(data)) {
-          // แปลงรูปแบบข้อมูลให้ตรงกับโครงสร้างตารางเดิม
           window.triageHistoryList = data.map((item, index) => ({
             docId: item.ID || ('rec_' + index),
             queueNo: item.ID || 'E-001',
@@ -39,22 +35,18 @@
             time: "00:00",
             age: "--",
             gender: "ชาย"
-          })).reverse(); // แสดงข้อมูลล่าสุดขึ้นบน
+          })).reverse();
 
           if (typeof window.updateQueueCountersUI === 'function') window.updateQueueCountersUI();
           if (typeof window.updateHistoryBadge === 'function') window.updateHistoryBadge();
           if (typeof window.renderHistoryTable === 'function') window.renderHistoryTable();
-          updateCloudSyncStatusUI(true);
         }
       } catch (e) {
-        console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้:", e);
-        updateCloudSyncStatusUI(false);
+        console.warn("Fetch error:", e);
       }
     }
 
-    // ฟังก์ชันบันทึกข้อมูลไปยัง Google Sheets
     window.saveRecordToCloud = async function(record) {
-      // เพิ่มลง Local array ชั่วคราวก่อนเพื่อความลื่นไหล
       window.triageHistoryList.unshift(record);
       if (typeof window.updateQueueCountersUI === 'function') window.updateQueueCountersUI();
       if (typeof window.updateHistoryBadge === 'function') window.updateHistoryBadge();
@@ -75,10 +67,9 @@
             status: record.vitals
           })
         });
-        // ดึงข้อมูลล่าสุดทันทีหลังบันทึก
         setTimeout(fetchPatientsFromGoogleSheets, 1500);
       } catch (err) {
-        console.error("บันทึกไป Google Sheets ไม่สำเร็จ:", err);
+        console.error("Save error:", err);
       }
     };
 
@@ -97,18 +88,6 @@
       if (typeof window.renderHistoryTable === 'function') window.renderHistoryTable();
     };
 
-    function updateCloudSyncStatusUI(isConnected) {
-      const statusEl = document.getElementById('cloudStatusIndicator');
-      if (statusEl) {
-        if (isConnected) {
-          statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800"><i class="fa-solid fa-signal text-[9px] animate-pulse"></i> Google Sheets (Real-time)</span>`;
-        } else {
-          statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-950 text-amber-400 px-2 py-0.5 rounded-full border border-amber-800"><i class="fa-solid fa-wifi text-[9px]"></i> กำลังเชื่อมต่อ...</span>`;
-        }
-      }
-    }
-
-    // เริ่มทำงานดึงข้อมูลอัตโนมัติทุก 4 วินาที
     setInterval(fetchPatientsFromGoogleSheets, 4000);
   </script>
 
@@ -150,7 +129,7 @@
       </div>
       <div>
         <h1 class="text-sm font-bold text-emerald-400 tracking-wide flex items-center gap-1.5 leading-tight">
-          โรงพยาบาลสบปราบ <span class="text-[10px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">Google Sheets DB v4.2</span>
+          โรงพยาบาลสบปราบ <span class="text-[10px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">MOPH ED Triage v4.2</span>
         </h1>
         <p class="text-[11px] text-slate-400 leading-tight">
           <i class="fa-solid fa-user-nurse text-emerald-400 mr-1"></i> ผู้ใช้งาน: <span class="text-slate-200 font-medium">พยาบาลวิชาชีพ (RN Workstation 01)</span>
@@ -158,13 +137,15 @@
       </div>
     </div>
 
-    <!-- Clock & Instant Emergency Button -->
     <div class="flex items-center space-x-3">
       <div id="cloudStatusIndicator"><span class="inline-flex items-center gap-1 text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800"><i class="fa-solid fa-signal text-[9px] animate-pulse"></i> Google Sheets Connected</span></div>
       <div class="text-right hidden sm:block leading-tight">
         <div id="liveClock" class="text-sm font-mono font-bold text-slate-200">12:02:40</div>
         <div id="liveDate" class="text-[10px] text-slate-400">วันจันทร์ที่ 9 พฤศจิกายน 2569</div>
       </div>
+      <button onclick="openShareModal()" title="แชร์ใช้งานหลายเครื่อง / ลิงก์ระบบ" class="bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold p-2 rounded-lg shadow-lg text-xs flex items-center justify-center border border-sky-400 transition-all">
+        <i class="fa-solid fa-share-nodes text-sm"></i>
+      </button>
       <button onclick="triggerRedFlag()" title="กดเพื่อสับสวิตช์เป็น Level 1 สัญญาณเตือนวิกฤตทันที [F5]" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg text-xs flex items-center space-x-1.5 border border-red-400 animate-pulse transition-all">
         <i class="fa-solid fa-circle-exclamation text-sm"></i>
         <span class="tracking-wider">RED FLAG (L1)</span>
