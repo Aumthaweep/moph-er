@@ -10,92 +10,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts Prompt -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Google Sheets Sync Script -->
-  <script>
-    const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzXLw2exSbddm_CBdh0-FfSbV3QrQjaFxCMfKNpepoEqzE3eYKA4RmMAtKAYX4XJsMD/exec";
-    window.triageHistoryList = [];
-
-    async function fetchPatientsFromGoogleSheets() {
-      try {
-        const response = await fetch(GOOGLE_SHEETS_API_URL + "?action=get");
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          window.triageHistoryList = data.map((item, index) => ({
-            docId: item.ID || ('rec_' + index),
-            queueNo: item.ID || 'E-001',
-            hn: item.HN || '',
-            name: item.PatientName || '',
-            level: parseInt(item.TriageLevel) || 3,
-            reason: item.ChiefComplaint || '',
-            vitals: item.Status || 'Active',
-            date: new Date().toISOString().slice(0,10),
-            time: "00:00",
-            age: "--",
-            gender: "ชาย"
-          })).reverse();
-
-          if (typeof window.updateQueueCountersUI === 'function') window.updateQueueCountersUI();
-          if (typeof window.updateHistoryBadge === 'function') window.updateHistoryBadge();
-          if (typeof window.renderHistoryTable === 'function') window.renderHistoryTable();
-        }
-      } catch (e) {
-        console.warn("Fetch error:", e);
-      }
-    }
-
-    window.saveRecordToCloud = async function(record) {
-      window.triageHistoryList.unshift(record);
-      if (typeof window.updateQueueCountersUI === 'function') window.updateQueueCountersUI();
-      if (typeof window.updateHistoryBadge === 'function') window.updateHistoryBadge();
-      if (typeof window.renderHistoryTable === 'function') window.renderHistoryTable();
-
-      try {
-        await fetch(GOOGLE_SHEETS_API_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "add",
-            id: record.queueNo,
-            hn: record.hn,
-            patientName: record.name,
-            triageLevel: record.level,
-            chiefComplaint: record.reason,
-            status: record.vitals
-          })
-        });
-        setTimeout(fetchPatientsFromGoogleSheets, 1500);
-      } catch (err) {
-        console.error("Save error:", err);
-      }
-    };
-
-    window.deleteRecordFromCloud = async function(docId) {
-      window.triageHistoryList = (window.triageHistoryList || []).filter(item => item.docId !== docId);
-      if (typeof window.updateQueueCountersUI === 'function') window.updateQueueCountersUI();
-      if (typeof window.updateHistoryBadge === 'function') window.updateHistoryBadge();
-      if (typeof window.renderHistoryTable === 'function') window.renderHistoryTable();
-    };
-
-    window.clearAllRecordsFromCloud = async function() {
-      window.triageHistoryList = [];
-      window.ticketSequence = 1;
-      if (typeof window.updateQueueCountersUI === 'function') window.updateQueueCountersUI();
-      if (typeof window.updateHistoryBadge === 'function') window.updateHistoryBadge();
-      if (typeof window.renderHistoryTable === 'function') window.renderHistoryTable();
-    };
-
-    setInterval(fetchPatientsFromGoogleSheets, 4000);
-  </script>
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Prompt', 'sans-serif'] },
+          fontFamily: {
+            sans: ['Prompt', 'sans-serif'],
+          },
           colors: {
             triageRed: '#DC2626',
             triageOrange: '#EA580C',
@@ -108,15 +32,28 @@
     }
   </script>
   <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #0f172a; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #1e293b; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #0f172a;
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
     @keyframes pulse-red {
       0%, 100% { background-color: #ef4444; color: #ffffff; }
       50% { background-color: #7f1d1d; color: #fca5a5; }
     }
-    .animate-pulse-red { animation: pulse-red 1.2s infinite; }
+    .animate-pulse-red {
+      animation: pulse-red 1.2s infinite;
+    }
   </style>
 </head>
 <body class="text-slate-100 h-screen overflow-hidden flex flex-col justify-between select-none">
@@ -129,7 +66,7 @@
       </div>
       <div>
         <h1 class="text-sm font-bold text-emerald-400 tracking-wide flex items-center gap-1.5 leading-tight">
-          โรงพยาบาลสบปราบ <span class="text-[10px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">MOPH ED Triage v4.2</span>
+          โรงพยาบาลสบปราบ <span class="text-[10px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">MOPH ED Triage v4.5</span>
         </h1>
         <p class="text-[11px] text-slate-400 leading-tight">
           <i class="fa-solid fa-user-nurse text-emerald-400 mr-1"></i> ผู้ใช้งาน: <span class="text-slate-200 font-medium">พยาบาลวิชาชีพ (RN Workstation 01)</span>
@@ -137,14 +74,24 @@
       </div>
     </div>
 
+    <!-- Clock & Google Sheets Indicator -->
     <div class="flex items-center space-x-3">
-      <div id="cloudStatusIndicator"><span class="inline-flex items-center gap-1 text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800"><i class="fa-solid fa-signal text-[9px] animate-pulse"></i> Google Sheets Connected</span></div>
-      <div class="text-right hidden sm:block leading-tight">
-        <div id="liveClock" class="text-sm font-mono font-bold text-slate-200">12:02:40</div>
-        <div id="liveDate" class="text-[10px] text-slate-400">วันจันทร์ที่ 9 พฤศจิกายน 2569</div>
+      <div id="sheetsStatusIndicator">
+        <span class="inline-flex items-center gap-1 text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800">
+          <i class="fa-solid fa-circle-check text-[9px] animate-pulse"></i> เชื่อมต่อ Google Sheets (ซิงค์ทุกเครื่อง)
+        </span>
       </div>
-      <button onclick="openShareModal()" title="แชร์ใช้งานหลายเครื่อง / ลิงก์ระบบ" class="bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold p-2 rounded-lg shadow-lg text-xs flex items-center justify-center border border-sky-400 transition-all">
-        <i class="fa-solid fa-share-nodes text-sm"></i>
+      <div class="text-right hidden sm:block leading-tight">
+        <div id="liveClock" class="text-sm font-mono font-bold text-slate-200">00:00:00</div>
+        <div id="liveDate" class="text-[10px] text-slate-400">วันอังคารที่ 10 พฤศจิกายน 2569</div>
+      </div>
+      <!-- Refresh All Data Button -->
+      <button onclick="fetchHistoryFromGoogleSheets()" title="รีเฟรช ดึงข้อมูลล่าสุดจากทุกเครื่อง" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-sky-400 font-bold p-2 rounded-lg shadow-lg text-xs flex items-center justify-center border border-slate-700 transition-all">
+        <i class="fa-solid fa-rotate-right text-sm"></i>
+      </button>
+      <!-- Google Sheets Config Button -->
+      <button onclick="openSheetsConfigModal()" title="ตั้งค่าการเชื่อมต่อ Google Sheets" class="bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold p-2 rounded-lg shadow-lg text-xs flex items-center justify-center border border-emerald-500 transition-all">
+        <i class="fa-solid fa-file-excel text-sm"></i>
       </button>
       <button onclick="triggerRedFlag()" title="กดเพื่อสับสวิตช์เป็น Level 1 สัญญาณเตือนวิกฤตทันที [F5]" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg text-xs flex items-center space-x-1.5 border border-red-400 animate-pulse transition-all">
         <i class="fa-solid fa-circle-exclamation text-sm"></i>
@@ -156,325 +103,1396 @@
   <!-- MAIN WORKSTATION CONTENT -->
   <main class="p-2.5 grid grid-cols-1 lg:grid-cols-12 gap-2.5 flex-grow max-w-[1920px] mx-auto w-full overflow-hidden">
 
-    <!-- COLUMN 1: PATIENT INFO & VITALS -->
+    <!-- COLUMN 1: PATIENT INFO & VITALS (lg:col-span-4) -->
     <section class="lg:col-span-4 bg-slate-900/90 rounded-xl border border-slate-800 p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm overflow-y-auto">
       <div class="space-y-2">
+        <!-- Section Header -->
         <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
           <h2 class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-address-card"></i> ข้อมูลผู้ป่วย &amp; สัญญาณชีพ
+            <i class="fa-solid fa-address-card"></i> ข้อมูลผู้ป่วย & สัญญาณชีพ
           </h2>
           <button onclick="fillDemoData()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2 py-0.5 rounded border border-slate-700 transition flex items-center gap-1">
             <i class="fa-solid fa-wand-magic-sparkles"></i> ดึงข้อมูลตัวอย่าง
           </button>
         </div>
 
+        <!-- ID Search / Scan Bar -->
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 text-xs">
             <i class="fa-solid fa-barcode"></i>
           </div>
-          <input type="text" id="patientSearch" oninput="handlePatientSearch(this.value)" placeholder="สแกนบัตรประชาชน / กรอก HN หรือ ชื่อ-สกุล... [F1]" class="w-full pl-8 pr-8 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-slate-100 focus:outline-none focus:border-sky-500 transition">
+          <input type="text" id="patientSearch" oninput="handlePatientSearch(this.value)" placeholder="สแกนบัตรประชาชน / กรอก HN หรือ ชื่อ-สกุล... [F1]" 
+            class="w-full pl-8 pr-8 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-slate-100 focus:outline-none focus:border-sky-500 transition">
+          <button onclick="clearPatientForm()" title="ล้างข้อมูล" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-slate-300 text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
 
+        <!-- Patient Demographics Box -->
         <div class="bg-slate-950/70 rounded-lg p-2 border border-slate-800 space-y-1.5">
           <div class="flex justify-between items-center gap-2">
-            <input type="text" id="patientNameInput" value="นายสมชาย ใจดี" placeholder="กรอก ชื่อ-นามสกุล..." class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 font-bold focus:outline-none focus:border-sky-500">
-            <div class="flex items-center gap-1 shrink-0 bg-sky-950 px-1.5 py-0.5 rounded border border-sky-800 text-[10px] text-sky-300 font-mono">
-              <span class="text-slate-400 font-sans">HN:</span>
-              <input type="text" id="patientHNInput" value="123456" placeholder="xxxxxx" class="w-20 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-sky-300 font-mono font-bold focus:outline-none focus:border-sky-500 text-center">
+            <input type="text" id="patientNameInput" value="นายสมชาย ใจดี" placeholder="กรอกชื่อ-นามสกุลผู้ป่วย..." 
+              class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 font-bold focus:outline-none focus:border-sky-500">
+            <div class="flex items-center gap-1 shrink-0 bg-sky-950 px-2 py-1 rounded border border-sky-800 text-xs text-sky-300 font-mono">
+              <span class="text-slate-400">HN:</span>
+              <input type="text" id="patientHNInput" value="66/12345" placeholder="HN..." 
+                class="w-20 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-sky-300 font-mono font-bold focus:outline-none focus:border-sky-500 text-center">
             </div>
           </div>
           <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1">
             <div class="flex items-center gap-1">
+              <i class="fa-solid fa-cake-candles text-slate-500"></i>
               <span>อายุ:</span>
-              <input type="number" id="patientAgeInput" min="0" max="120" value="55" class="w-12 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-slate-100 text-center font-bold">
+              <input type="number" id="patientAgeInput" min="0" max="120" value="55" placeholder="--" 
+                class="w-12 bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-slate-100 text-center font-bold focus:outline-none focus:border-sky-500">
               <span>ปี</span>
             </div>
             <div class="flex items-center gap-1">
+              <i class="fa-solid fa-venus-mars text-slate-500"></i>
               <span>เพศ:</span>
-              <select id="patientGenderSelect" class="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-slate-100 font-bold">
+              <select id="patientGenderSelect" class="bg-slate-900 border border-slate-700 rounded px-1 py-0.5 text-xs text-slate-100 font-bold focus:outline-none focus:border-sky-500">
                 <option value="ชาย" selected>ชาย</option>
                 <option value="หญิง">หญิง</option>
+                <option value="ไม่ระบุ">ไม่ระบุ</option>
               </select>
             </div>
             <div class="flex items-center gap-1">
+              <i class="fa-solid fa-id-card text-slate-500"></i>
               <span>สิทธิ:</span>
               <strong id="patientRights" class="text-emerald-400">บัตรทอง (UC)</strong>
             </div>
           </div>
         </div>
 
+        <!-- Vital Signs Inputs Header -->
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              บันทึกสัญญาณชีพ (คำนวณ LEVEL 1-5 ทันที)
+              บันทึกสัญญาณชีพ (คำนวณ LEVEL 1-5 ทันทีที่เปลี่ยนค่า)
             </label>
-            <button onclick="resetVitalsForm()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-              ล้างข้อมูล
+            <button onclick="resetVitalsForm()" title="ล้างค่าสัญญาณชีพและตัวเลือกทั้งหมด" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-0.5 rounded border border-slate-700 transition flex items-center gap-1">
+              <i class="fa-solid fa-rotate-left text-amber-400"></i> ล้างข้อมูล
             </button>
           </div>
           
           <div class="grid grid-cols-2 gap-1.5">
-            <div class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-              <span class="text-[10px] text-slate-400">BT (°C)</span>
-              <input type="number" step="0.1" id="btInput" value="37.5" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base focus:outline-none">
-            </div>
-            <div class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-              <span class="text-[10px] text-slate-400">PR / HR (bpm)</span>
-              <input type="number" id="hrInput" value="85" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base focus:outline-none">
-            </div>
-            <div class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 col-span-2">
-              <span class="text-[10px] text-slate-400">BP (mmHg) <span id="mapDisplay" class="text-[10px] text-sky-400 font-mono">(MAP: 93)</span></span>
-              <div class="flex items-center gap-1 mt-0.5">
-                <input type="number" id="sysInput" value="120" oninput="calculateTriage()" placeholder="Sys" class="w-1/2 bg-transparent font-bold text-slate-100 text-base focus:outline-none">
-                <span>/</span>
-                <input type="number" id="diaInput" value="80" oninput="calculateTriage()" placeholder="Dia" class="w-1/2 bg-transparent font-bold text-slate-100 text-base focus:outline-none">
+            <!-- Body Temp -->
+            <div id="btBox" class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 focus-within:border-sky-500 transition">
+              <div class="flex justify-between text-[10px] text-slate-400 leading-tight">
+                <span>BT (°C)</span>
+                <span id="btAlert" class="text-[9px] text-amber-400 font-medium hidden"><i class="fa-solid fa-triangle-exclamation"></i> มีไข้</span>
+              </div>
+              <div class="flex items-center justify-between gap-1 mt-0.5">
+                <input type="number" step="0.1" id="btInput" value="37.5" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base leading-tight focus:outline-none">
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button type="button" onmousedown="startHoldAdjust('btInput', -0.1, 0, 50, 50)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('btInput', -0.1, 0, 50, 50)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-minus"></i></button>
+                  <button type="button" onmousedown="startHoldAdjust('btInput', 0.1, 0, 50, 50)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('btInput', 0.1, 0, 50, 50)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-plus"></i></button>
+                </div>
               </div>
             </div>
-            <div class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-              <span class="text-[10px] text-slate-400">RR (/min)</span>
-              <input type="number" id="rrInput" value="18" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base focus:outline-none">
+
+            <!-- Heart Rate / Pulse -->
+            <div id="hrBox" class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 focus-within:border-sky-500 transition">
+              <div class="flex justify-between text-[10px] text-slate-400 leading-tight">
+                <span>PR / HR (bpm)</span>
+                <span id="hrAlert" class="text-[9px] text-red-400 font-bold hidden">&ge;150 (L1)</span>
+              </div>
+              <div class="flex items-center justify-between gap-1 mt-0.5">
+                <input type="number" id="hrInput" value="85" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base leading-tight focus:outline-none">
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button type="button" onmousedown="startHoldAdjust('hrInput', -1)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('hrInput', -1)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-minus"></i></button>
+                  <button type="button" onmousedown="startHoldAdjust('hrInput', 1)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('hrInput', 1)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-plus"></i></button>
+                </div>
+              </div>
             </div>
-            <div class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-              <span class="text-[10px] text-slate-400">SpO2 (%)</span>
-              <input type="number" id="spo2Input" value="98" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base focus:outline-none">
+
+            <!-- BP & MAP -->
+            <div id="bpBox" class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 focus-within:border-sky-500 transition col-span-2">
+              <div class="flex justify-between text-[10px] text-slate-400 leading-tight">
+                <span>BP (mmHg) <span id="mapDisplay" class="text-[10px] text-sky-400 font-mono font-bold">(MAP: 93)</span></span>
+                <span id="bpAlert" class="text-[9px] text-red-400 font-bold hidden">SBP&lt;90 / MAP&lt;65 (L1)</span>
+              </div>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <div class="flex items-center gap-1 w-1/2">
+                  <input type="number" id="sysInput" value="120" oninput="calculateTriage()" placeholder="Sys" class="w-full bg-transparent font-bold text-slate-100 text-base leading-tight focus:outline-none">
+                  <div class="flex items-center gap-0.5 shrink-0">
+                    <button type="button" onmousedown="startHoldAdjust('sysInput', -1)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('sysInput', -1)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-minus"></i></button>
+                    <button type="button" onmousedown="startHoldAdjust('sysInput', 1)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('sysInput', 1)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-plus"></i></button>
+                  </div>
+                </div>
+                <span class="text-slate-500 font-bold text-sm">/</span>
+                <div class="flex items-center gap-1 w-1/2">
+                  <input type="number" id="diaInput" value="80" oninput="calculateTriage()" placeholder="Dia" class="w-full bg-transparent font-bold text-slate-100 text-base leading-tight focus:outline-none">
+                  <div class="flex items-center gap-0.5 shrink-0">
+                    <button type="button" onmousedown="startHoldAdjust('diaInput', -1)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('diaInput', -1)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-minus"></i></button>
+                    <button type="button" onmousedown="startHoldAdjust('diaInput', 1)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('diaInput', 1)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-plus"></i></button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 col-span-2">
-              <span class="text-[10px] text-slate-400">GCS (3-15)</span>
-              <input type="number" id="gcsInput" value="15" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base focus:outline-none">
+
+            <!-- Respiratory Rate -->
+            <div id="rrBox" class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 focus-within:border-sky-500 transition">
+              <div class="flex justify-between text-[10px] text-slate-400 leading-tight">
+                <span>RR (/min)</span>
+                <span id="rrAlert" class="text-[9px] text-red-400 font-bold hidden">&ge;28 (L1)</span>
+              </div>
+              <div class="flex items-center justify-between gap-1 mt-0.5">
+                <input type="number" id="rrInput" value="18" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base leading-tight focus:outline-none">
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button type="button" onmousedown="startHoldAdjust('rrInput', -1, 0, 300, 50)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('rrInput', -1, 0, 300, 50)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-minus"></i></button>
+                  <button type="button" onmousedown="startHoldAdjust('rrInput', 1, 0, 300, 50)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('rrInput', 1, 0, 300, 50)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-plus"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- SpO2 -->
+            <div id="spo2Box" class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 focus-within:border-sky-500 transition">
+              <div class="flex justify-between text-[10px] text-slate-400 leading-tight">
+                <span>SpO2 (%)</span>
+                <span id="spo2Alert" class="text-[9px] text-red-400 font-bold hidden">&le;90% (L1)</span>
+              </div>
+              <div class="flex items-center justify-between gap-1 mt-0.5">
+                <input type="number" id="spo2Input" value="98" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base leading-tight focus:outline-none">
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button type="button" onmousedown="startHoldAdjust('spo2Input', -1, 0, 100)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('spo2Input', -1, 0, 100)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-minus"></i></button>
+                  <button type="button" onmousedown="startHoldAdjust('spo2Input', 1, 0, 100)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('spo2Input', 1, 0, 100)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-plus"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- GCS -->
+            <div id="gcsBox" class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 focus-within:border-sky-500 transition col-span-1">
+              <div class="flex justify-between text-[10px] text-slate-400 leading-tight">
+                <span>GCS (3-15)</span>
+                <span id="gcsAlert" class="text-[9px] text-red-400 font-bold hidden">&le;8 (L1)</span>
+              </div>
+              <div class="flex items-center justify-between gap-1 mt-0.5">
+                <input type="number" id="gcsInput" value="15" min="3" max="15" oninput="calculateTriage()" class="w-full bg-transparent font-bold text-slate-100 text-base leading-tight focus:outline-none">
+                <div class="flex items-center gap-0.5 shrink-0">
+                  <button type="button" onmousedown="startHoldAdjust('gcsInput', -1, 3, 15, 50)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('gcsInput', -1, 3, 15, 50)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-minus"></i></button>
+                  <button type="button" onmousedown="startHoldAdjust('gcsInput', 1, 3, 15, 50)" onmouseup="stopHoldAdjust()" onmouseleave="stopHoldAdjust()" ontouchstart="startHoldAdjust('gcsInput', 1, 3, 15, 50)" ontouchend="stopHoldAdjust()" class="w-5 h-5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded flex items-center justify-center text-[10px] active:scale-90 transition select-none"><i class="fa-solid fa-plus"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- On O2, Hypercapnic & NEWS2 Score Box -->
+            <div class="bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 flex flex-col justify-between col-span-1">
+              <div class="flex items-center justify-between text-[10px] text-slate-400 gap-1">
+                <label class="text-[10px] text-slate-300 flex items-center gap-1 cursor-pointer hover:text-white" title="Supplemental Oxygen">
+                  <input type="checkbox" id="onOxygen" onchange="calculateTriage()" class="w-3 h-3 rounded text-sky-600 bg-slate-900 border-slate-700">
+                  <span class="font-bold text-sky-300">On O2</span>
+                </label>
+                <label class="text-[10px] text-slate-300 flex items-center gap-1 cursor-pointer hover:text-white" title="Hypercapnic Respiratory Failure">
+                  <input type="checkbox" id="isHypercapnic" onchange="calculateTriage()" class="w-3 h-3 rounded text-purple-500 bg-slate-900 border-slate-700">
+                  <span class="font-medium text-purple-300">Hypercapnic</span>
+                </label>
+              </div>
+              <div class="pt-0.5 flex justify-end">
+                <div id="newsBadge" class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 w-full text-center" title="National Early Warning Score 2">
+                  NEWS2: <span id="newsScoreVal">0</span> (Low)
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
+        <!-- Pain Score Slider -->
         <div class="bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800 space-y-1">
           <div class="flex justify-between items-center text-[11px]">
-            <span class="text-slate-400">Pain Score:</span>
-            <span id="painValueDisplay" class="bg-emerald-600 text-white font-bold px-1.5 rounded text-[10px]">0 / 10</span>
+            <span class="text-slate-400 font-medium">Pain Score (ความเจ็บปวด):</span>
+            <span id="painValueDisplay" class="bg-emerald-600 text-white font-bold px-1.5 py-0.2 rounded text-[10px] shadow">0 / 10</span>
           </div>
-          <input type="range" id="painInput" min="0" max="10" value="0" oninput="updatePainDisplay(this.value); calculateTriage()" class="w-full h-1.5 bg-slate-800 rounded-lg accent-red-500">
+          <input type="range" id="painInput" min="0" max="10" value="0" oninput="updatePainDisplay(this.value); calculateTriage()" 
+            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-500">
+          <div class="flex justify-between text-[9px] text-slate-500 font-mono">
+            <span>0 (ไม่ปวด)</span>
+            <span>5 (ปวดปานกลาง)</span>
+            <span>10 (ปวดมากที่สุด)</span>
+          </div>
         </div>
+      </div>
+
+      <div class="pt-2 text-[10px] text-slate-500 flex justify-between border-t border-slate-800/80 mt-2">
+        <span><i class="fa-solid fa-keyboard mr-1"></i> [F1] ค้นหา</span>
+        <span>[F5] Red Flag</span>
+        <span>[Enter] ออกคิว</span>
       </div>
     </section>
 
-    <!-- COLUMN 2: TRIAGE ASSESSMENT LOGIC -->
+    <!-- COLUMN 2: TRIAGE ASSESSMENT LOGIC (lg:col-span-5) -->
     <section class="lg:col-span-5 bg-slate-900/90 rounded-xl border border-slate-800 p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm space-y-2 overflow-y-auto">
       <div class="space-y-2">
         <div class="border-b border-slate-800 pb-1.5 flex justify-between items-center">
           <h2 class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
             <i class="fa-solid fa-diagram-project"></i> อัลกอริทึมคัดแยกอัตโนมัติ (MOPH Triage)
           </h2>
+          <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">Auto-Evaluated</span>
         </div>
 
+        <!-- STEP 1 -->
         <div class="bg-red-950/30 border border-red-900/50 rounded-lg p-2 space-y-1.5">
-          <div class="text-[11px] font-bold text-red-400">Step 1: Life Threatening / Resuscitation</div>
-          <div class="space-y-1 text-[11px]">
-            <label class="flex items-center space-x-1.5 text-slate-300 cursor-pointer">
-              <input type="checkbox" id="rfUnresponsive" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-red-600">
+          <div class="flex items-center justify-between text-[11px] font-bold text-red-400">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Step 1: Life Threatening / Resuscitation
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] bg-red-900/80 text-red-200 px-1 py-0.5 rounded">Level 1 Decision</span>
+              <button onclick="toggleThresholdPanel('thresholdPanel', 'toggleThresholdText', 'toggleThresholdIcon')" class="text-[9px] bg-red-900/60 hover:bg-red-800 text-red-200 px-1.5 py-0.5 rounded border border-red-700 transition flex items-center gap-1">
+                <i id="toggleThresholdIcon" class="fa-solid fa-chevron-down"></i>
+                <span id="toggleThresholdText">แสดงเกณฑ์</span>
+              </button>
+            </div>
+          </div>
+          
+          <div id="thresholdPanel" class="hidden bg-red-950/60 p-1.5 rounded border border-red-900/60 space-y-0.5 text-[10px] font-mono text-red-200 transition-all">
+            <div class="grid grid-cols-2 gap-x-1.5 gap-y-0.5 text-[10px]">
+              <div id="ruleGCS" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>GCS &le; 8</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleSpO2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>SpO2 &le; 90%</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleSBP" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>SBP &lt; 90 mmHg</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleMAP" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>MAP &lt; 65 mmHg</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleRR" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>RR &ge; 35 /min</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="rulePR" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>PR &ge; 150 bpm</span><span class="font-bold text-slate-400">ปกติ</span></div>
+            </div>
+          </div>
+
+          <div class="space-y-1 text-[11px] pt-0.5">
+            <label class="flex items-center space-x-1.5 text-slate-300 hover:text-white cursor-pointer">
+              <input type="checkbox" id="rfUnresponsive" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-red-600 bg-slate-900 border-slate-700">
               <span>หัวใจหยุดเต้น / ไม่รู้สึกตัว (Cardiac Arrest / Unresponsive)</span>
             </label>
-            <label class="flex items-center space-x-1.5 text-slate-300 cursor-pointer">
-              <input type="checkbox" id="rfDistress" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-red-600">
-              <span>หายใจเฮือก / ทางเดินหายใจอุดกั้น</span>
+            <label class="flex items-center space-x-1.5 text-slate-300 hover:text-white cursor-pointer">
+              <input type="checkbox" id="rfDistress" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-red-600 bg-slate-900 border-slate-700">
+              <span>หายใจเฮือก / ทางเดินหายใจอุดกั้น (Severe Respiratory Distress)</span>
+            </label>
+            <label class="flex items-center space-x-1.5 text-slate-300 hover:text-white cursor-pointer">
+              <input type="checkbox" id="rfShock" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-red-600 bg-slate-900 border-slate-700">
+              <span>ภาวะช็อกรุนแรง / แพ้รุนแรง (Severe Shock / Anaphylaxis)</span>
             </label>
           </div>
         </div>
 
+        <!-- STEP 2 -->
         <div class="bg-orange-950/30 border border-orange-900/50 rounded-lg p-2 space-y-1.5">
-          <div class="text-[11px] font-bold text-orange-400">Step 2: High Risk Situation & Severe Symptoms</div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-orange-400">
+            <span class="flex items-center gap-1.5">
+              Step 2: High Risk Situation &amp; Severe Symptoms
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] bg-orange-900/80 text-orange-200 px-1 py-0.5 rounded">Level 2 Decision</span>
+              <button onclick="toggleThresholdPanel('thresholdPanelL2', 'toggleThresholdTextL2', 'toggleThresholdIconL2')" class="text-[9px] bg-orange-900/60 hover:bg-orange-800 text-orange-200 px-1.5 py-0.5 rounded border border-orange-700 transition flex items-center gap-1">
+                <i id="toggleThresholdIconL2" class="fa-solid fa-chevron-down"></i>
+                <span id="toggleThresholdTextL2">แสดงเกณฑ์</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="thresholdPanelL2" class="hidden bg-orange-950/60 p-1.5 rounded border border-orange-900/60 space-y-0.5 text-[10px] font-mono text-orange-200 transition-all">
+            <div class="grid grid-cols-2 gap-x-1.5 gap-y-0.5 text-[10px]">
+              <div id="rulePainL2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>Pain Score &ge; 7</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleSbpL2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>SBP &gt; 180 mmHg</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleHrL2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>HR &gt; 130 bpm</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleRrL2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>RR &ge; 25 /min</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleGcsL2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>GCS 9-12</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleNewsL2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>NEWS2 Score &ge; 5</span><span class="font-bold text-slate-400">ปกติ</span></div>
+              <div id="ruleResVitalsL2" class="flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded"><span>Res &ge; 2 + (PR&gt;100 | RR&gt;20 | SpO2&le;92%)</span><span class="font-bold text-slate-400">ปกติ</span></div>
+            </div>
+          </div>
+
           <div class="space-y-1 text-[11px]">
-            <label class="flex items-center space-x-1.5 text-slate-300 cursor-pointer">
-              <input type="checkbox" id="hrChestPain" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-orange-600">
-              <span>อาการเจ็บแน่นหน้าอกสงสัย ACS</span>
+            <label class="flex items-center space-x-1.5 text-slate-300 hover:text-white cursor-pointer">
+              <input type="checkbox" id="hrChestPain" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-orange-600 bg-slate-900 border-slate-700">
+              <span>อาการเจ็บแน่นหน้าอกสงสัยกล้ามเนื้อหัวใจขาดเลือด (ACS)</span>
             </label>
-            <label class="flex items-center space-x-1.5 text-slate-300 cursor-pointer">
-              <input type="checkbox" id="hrStroke" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-orange-600">
+            <label class="flex items-center space-x-1.5 text-slate-300 hover:text-white cursor-pointer">
+              <input type="checkbox" id="hrStroke" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-orange-600 bg-slate-900 border-slate-700">
               <span>อาการโรคหลอดเลือดสมอง (Stroke)</span>
             </label>
+            <label class="flex items-center space-x-1.5 text-slate-300 hover:text-white cursor-pointer">
+              <input type="checkbox" id="hrPsychosis" onchange="calculateTriage()" class="w-3.5 h-3.5 rounded text-orange-600 bg-slate-900 border-slate-700">
+              <span>จิตเวชคลุ้มคลั่ง เสี่ยงทำร้ายตนเอง/ผู้อื่น (acute psychosis)</span>
+            </label>
           </div>
         </div>
 
+        <!-- STEP 3 -->
         <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2 space-y-1">
           <div class="flex items-center justify-between text-[11px] font-bold text-amber-400">
-            <span>Step 3: Estimate Resources Required (ทรัพยากร)</span>
-            <span class="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">
-              จำนวน: <strong id="resourceCountDisplay" class="text-amber-400">0</strong> ชนิด
+            <span>Step 3: Estimate Resources Required</span>
+            <span class="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700">
+              จำนวน: <strong id="resourceCountDisplay" class="text-amber-400 font-bold">0</strong> ชนิด
             </span>
           </div>
+          
           <div class="grid grid-cols-3 gap-1 text-[10px]">
-            <label class="flex items-center space-x-1 bg-slate-900 p-1 rounded border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="resLab" onchange="calculateTriage()" class="w-3 h-3"> <span>เจาะเลือด/ปัสสาวะ</span>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resLab" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-vial text-sky-400 mr-0.5"></i> เจาะเลือด/ปัสสาวะ</span>
             </label>
-            <label class="flex items-center space-x-1 bg-slate-900 p-1 rounded border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="resXray" onchange="calculateTriage()" class="w-3 h-3"> <span>X-Ray</span>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resXray" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-x-ray text-amber-400 mr-0.5"></i> X-Ray</span>
             </label>
-            <label class="flex items-center space-x-1 bg-slate-900 p-1 rounded border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="resCT" onchange="calculateTriage()" class="w-3 h-3"> <span>CT Scan</span>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resCT" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-brain text-amber-500 mr-0.5"></i> CT Scan</span>
             </label>
-            <label class="flex items-center space-x-1 bg-slate-900 p-1 rounded border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="resEKG" onchange="calculateTriage()" class="w-3 h-3"> <span>EKG 12-Leads</span>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resUS" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-wave-square text-teal-400 mr-0.5"></i> Ultrasound (US)</span>
             </label>
-            <label class="flex items-center space-x-1 bg-slate-900 p-1 rounded border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="resIV" onchange="calculateTriage()" class="w-3 h-3"> <span>ยา IV / น้ำเกลือ</span>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resEKG" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-heart-pulse text-red-400 mr-0.5"></i> EKG 12-Leads</span>
             </label>
-            <label class="flex items-center space-x-1 bg-slate-900 p-1 rounded border border-slate-800 cursor-pointer">
-              <input type="checkbox" id="resConsult" onchange="calculateTriage()" class="w-3 h-3"> <span>Consult</span>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resIV" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-syringe text-emerald-400 mr-0.5"></i> ยา IV / IM / น้ำเกลือ</span>
+            </label>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resNebulizer" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-wind text-sky-300 mr-0.5"></i> พ่นยา (Nebulizer)</span>
+            </label>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resSuture" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-scissors text-purple-400 mr-0.5"></i> เย็บแผล / I&D / remove FB</span>
+            </label>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resNG" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-stretcher text-indigo-400 mr-0.5"></i> ใส่สาย NG</span>
+            </label>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resFoley" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-droplet text-blue-400 mr-0.5"></i> ใส่สาย Foley</span>
+            </label>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resConsult" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-user-md text-pink-400 mr-0.5"></i> Consult</span>
+            </label>
+            <label class="flex items-center space-x-1 text-slate-300 hover:text-white cursor-pointer bg-slate-900 px-1.5 py-1 rounded border border-slate-800">
+              <input type="checkbox" id="resTepid" onchange="calculateTriage()" class="w-3 h-3 rounded text-amber-500 bg-slate-950 border-slate-700">
+              <span class="truncate"><i class="fa-solid fa-temperature-arrow-down text-cyan-400 mr-0.5"></i> เช็ดตัวลดไข้</span>
             </label>
           </div>
+
+          <p class="text-[9px] text-slate-500 italic pt-0.5 leading-tight">
+            *เกณฑ์ทรัพยากร: &ge;2 ชนิด = L3 (Yellow) | 1 ชนิด = L4 (Green) | 0 ชนิด = L5 (White)<br>
+            *กรณีทรัพยากร &ge;2 ชนิด แล้ว PR&gt;100 หรือ RR&gt;20 หรือ SpO2&le;92% ปรับเป็น L2 (Orange) อัตโนมัติ
+          </p>
         </div>
       </div>
     </section>
 
-    <!-- COLUMN 3: TRIAGE RESULT & QUEUE SUMMARY -->
+    <!-- COLUMN 3: TRIAGE RESULT & QUEUE SUMMARY (lg:col-span-3) -->
     <section class="lg:col-span-3 bg-slate-900/90 rounded-xl border border-slate-800 p-2.5 flex flex-col justify-between shadow-xl backdrop-blur-sm space-y-2 overflow-y-auto">
       <div class="space-y-2">
         <div class="border-b border-slate-800 pb-1.5">
           <h2 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-square-poll-vertical"></i> ผลการประเมิน &amp; บันทึก
+            <i class="fa-solid fa-square-poll-vertical"></i> ผลการประเมิน & ส่งต่อ
           </h2>
         </div>
 
-        <div id="triageResultCard" class="rounded-xl p-3 border-2 shadow-xl bg-yellow-950/40 border-yellow-600 text-yellow-100">
+        <div id="triageResultCard" class="rounded-xl p-3 border-2 transition-all shadow-xl bg-blue-950/30 border-blue-600 text-blue-200">
           <div class="text-center space-y-1">
-            <span class="text-[10px] font-semibold uppercase tracking-wider opacity-80">ระดับความรุนแรง</span>
-            <div id="triageBadge" class="py-1.5 px-2 rounded-lg font-extrabold text-base flex items-center justify-center gap-1.5 bg-yellow-500 text-slate-950">
-              <i id="triageBadgeIcon" class="fa-solid fa-clock"></i>
-              <span id="triageBadgeText">LEVEL 3 : YELLOW</span>
+            <span class="text-[10px] font-semibold uppercase tracking-wider block opacity-80">ระดับความรุนแรง (Calculated Level)</span>
+            
+            <div id="triageBadge" class="py-1.5 px-2 rounded-lg font-extrabold text-base tracking-wide flex items-center justify-center gap-1.5 shadow-inner bg-blue-600 text-white">
+              <i id="triageBadgeIcon" class="fa-solid fa-circle-check"></i>
+              <span id="triageBadgeText">LEVEL 5 : WHITE</span>
             </div>
-            <div id="triageThaiTitle" class="font-bold text-xs text-slate-100">(ผู้ป่วยฉุกเฉินปานกลาง)</div>
+            
+            <div id="triageThaiTitle" class="font-bold text-xs text-slate-100">
+              (ผู้ป่วยไม่ฉุกเฉิน / Non-urgent)
+            </div>
           </div>
-          <div class="mt-2 pt-2 border-t border-slate-700 text-[11px]">
-            <span id="triageReasonText" class="font-medium text-slate-100 block bg-slate-950/40 p-1.5 rounded">ปกติ</span>
+
+          <div class="mt-2 pt-2 border-t border-slate-700/60 text-[11px] space-y-1">
+            <div class="flex justify-between items-center">
+              <span class="opacity-75">เป้าหมายเวลารอตรวจ:</span>
+              <strong id="targetWaitText" class="font-bold text-white bg-slate-950/60 px-1.5 py-0.5 rounded text-[10px]">&lt; 120 นาที</strong>
+            </div>
+            <div class="text-[10px] opacity-90 leading-tight">
+              <span class="opacity-75 block mb-0.5">เหตุผลการจัดกลุ่ม:</span>
+              <span id="triageReasonText" class="font-medium text-slate-100 block bg-slate-950/40 p-1.5 rounded border border-slate-800">ไม่ใช้ทรัพยากรทางการแพทย์ / อาการเล็กน้อย (Non-urgent)</span>
+            </div>
           </div>
         </div>
 
-        <button onclick="saveAndPrintTicket()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-bold py-2.5 px-3 rounded-xl shadow-lg border border-emerald-400 flex items-center justify-center space-x-1.5 transition-all text-xs">
+        <!-- CLINICAL OVERRIDE SECTION -->
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800 space-y-1.5">
+          <label class="flex items-center space-x-1.5 text-[11px] font-medium text-slate-300 cursor-pointer">
+            <input type="checkbox" id="overrideCheck" onchange="toggleOverride()" class="w-3.5 h-3.5 rounded text-sky-600 bg-slate-900 border-slate-700">
+            <span>ปรับเปลี่ยนระดับด้วย Clinical Judgment</span>
+          </label>
+
+          <div id="overrideControls" class="hidden space-y-1.5 pt-0.5">
+            <select id="overrideSelect" onchange="calculateTriage()" class="w-full bg-slate-900 border border-slate-700 rounded text-[11px] p-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
+              <option value="1">LEVEL 1 : RED (ผู้ป่วยวิกฤต)</option>
+              <option value="2">LEVEL 2 : ORANGE (ผู้ป่วยฉุกเฉินมาก)</option>
+              <option value="3" selected>LEVEL 3 : YELLOW (ผู้ป่วยฉุกเฉินปานกลาง)</option>
+              <option value="4">LEVEL 4 : GREEN (ผู้ป่วยฉุกเฉินน้อย)</option>
+              <option value="5">LEVEL 5 : WHITE (ผู้ป่วยไม่ฉุกเฉิน)</option>
+            </select>
+            <input type="text" id="overrideReason" placeholder="ระบุเหตุผลการปรับระดับ..." class="w-full bg-slate-900 border border-slate-700 rounded text-[11px] p-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
+          </div>
+        </div>
+
+        <button onclick="saveAndPrintTicket()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-bold py-2.5 px-3 rounded-xl shadow-lg shadow-emerald-950/50 border border-emerald-400 flex items-center justify-center space-x-1.5 transition-all text-xs">
           <i class="fa-solid fa-print text-sm"></i>
-          <span>บันทึกเข้า Google Sheets และออกคิว</span>
+          <span>บันทึกและพิมพ์บัตรคิว ER</span>
         </button>
       </div>
 
+      <!-- QUEUE SUMMARY -->
       <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 space-y-2">
-        <button onclick="openHistoryModal()" class="w-full text-[11px] bg-slate-900 hover:bg-sky-900/50 text-sky-300 py-1.5 px-2 rounded-lg border border-slate-800 transition flex items-center justify-center gap-1.5">
+        <div class="text-[11px] font-semibold text-slate-400 flex items-center justify-between">
+          <span><i class="fa-solid fa-chart-pie text-sky-400 mr-1"></i> สรุปยอดคัดกรองวันนี้</span>
+          <button onclick="fetchHistoryFromGoogleSheets()" title="ดึงยอดล่าสุดจาก Sheet" class="text-[10px] text-sky-400 hover:underline">
+            <i class="fa-solid fa-rotate text-[9px]"></i> รีเฟรช
+          </button>
+        </div>
+
+        <div class="grid grid-cols-5 gap-1 text-center font-bold text-xs">
+          <div class="bg-red-950/60 border border-red-900/80 p-1 rounded text-red-400">
+            <div class="text-[9px] opacity-80">L1</div>
+            <div id="qCountL1" class="text-sm font-extrabold text-red-400">0</div>
+          </div>
+          <div class="bg-orange-950/60 border border-orange-900/80 p-1 rounded text-orange-400">
+            <div class="text-[9px] opacity-80">L2</div>
+            <div id="qCountL2" class="text-sm font-extrabold text-orange-400">0</div>
+          </div>
+          <div class="bg-yellow-950/60 border border-yellow-900/80 p-1 rounded text-yellow-400">
+            <div class="text-[9px] opacity-80">L3</div>
+            <div id="qCountL3" class="text-sm font-extrabold text-yellow-400">0</div>
+          </div>
+          <div class="bg-green-950/60 border border-green-900/80 p-1 rounded text-green-400">
+            <div class="text-[9px] opacity-80">L4</div>
+            <div id="qCountL4" class="text-sm font-extrabold text-green-400">0</div>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 p-1 rounded text-slate-300">
+            <div class="text-[9px] opacity-80">L5</div>
+            <div id="qCountL5" class="text-sm font-extrabold text-blue-400">0</div>
+          </div>
+        </div>
+
+        <button onclick="openHistoryModal()" class="w-full text-[11px] bg-slate-900 hover:bg-sky-900/50 text-sky-300 py-1.5 px-2 rounded-lg border border-slate-800 hover:border-sky-500/50 transition flex items-center justify-center gap-1.5 shadow-sm">
           <i class="fa-solid fa-list-check text-sky-400"></i>
-          <span>ดูประวัติคนไข้ทั้งหมดจาก Google Sheets</span>
-          <span class="bg-sky-950 px-1.5 py-0.2 rounded border border-sky-800 text-[10px] font-mono font-bold">(<span id="historyTotalBadge">0</span>)</span>
+          <span>รายการคัดกรองแล้ว (รวมทุกเครื่อง)</span>
+          <span class="bg-sky-950 text-sky-300 px-1.5 py-0.2 rounded border border-sky-800 text-[10px] font-mono font-bold">(<span id="historyTotalBadge">0</span>)</span>
         </button>
       </div>
     </section>
+
   </main>
 
-  <!-- HISTORY MODAL -->
+  <footer class="bg-slate-950 border-t border-slate-800 px-3 py-1 text-[11px] text-slate-400 flex flex-wrap justify-between items-center gap-2 shrink-0">
+    <div class="flex gap-3">
+      <span><strong class="text-slate-200">[F1]</strong> ค้นหาผู้ป่วย</span>
+      <span><strong class="text-slate-200">[F5]</strong> สั่งการ Red Flag ด่วน</span>
+      <span><strong class="text-slate-200">[Enter]</strong> ออกบัตรคิว</span>
+      <span><strong class="text-slate-200">[F8]</strong> รายชื่อผู้ป่วยคัดกรองแล้ว</span>
+    </div>
+    <div class="text-slate-500 text-[10px]">
+      ระบบคัดแยกผู้ป่วยฉุกเฉินตามเกณฑ์กระทรวงสาธารณสุข &copy; โรงพยาบาลสบปราบ
+    </div>
+  </footer>
+
+  <!-- TRIAGE HISTORY MODAL -->
   <div id="historyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-slate-900 text-slate-100 rounded-xl p-4 max-w-4xl w-full shadow-2xl border border-slate-700 flex flex-col max-h-[90vh]">
+    <div class="bg-slate-900 text-slate-100 rounded-xl p-4 max-w-5xl w-full shadow-2xl border border-slate-700 flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-sm text-slate-100">รายการคนไข้ทั้งหมดจาก Google Sheets</h3>
-        <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white px-2 py-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 bg-sky-600/30 rounded-lg flex items-center justify-center text-sky-400 border border-sky-500/30">
+            <i class="fa-solid fa-clipboard-list text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+              รายการคนไข้ที่ได้รับการคัดกรองทั้งหมด (รวมทุกเครื่องวันนี้)
+            </h3>
+            <p class="text-[11px] text-slate-400">ข้อมูลเชื่อมโยงเรียลไทม์จาก Google Sheets ดึงรายการผู้ป่วยทั้งหมดในวันเดียวกัน</p>
+          </div>
+        </div>
+        <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-slate-800 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
       </div>
-      <div class="overflow-y-auto flex-grow border border-slate-800 rounded-lg bg-slate-950/60 mt-2">
+
+      <div class="py-2.5 flex flex-wrap justify-between gap-2 items-center">
+        <div class="relative flex-grow max-w-xs">
+          <input type="text" id="historySearchInput" oninput="renderHistoryTable()" placeholder="ค้นหา HN / ชื่อ-สกุล / คิว..." class="w-full pl-8 pr-3 py-1 bg-slate-950 border border-slate-700 rounded-lg text-xs text-slate-100 focus:outline-none focus:border-sky-500">
+          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-500 text-xs"></i>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="fetchHistoryFromGoogleSheets()" class="bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs px-2.5 py-1 rounded-lg border border-slate-700 transition flex items-center gap-1">
+            <i class="fa-solid fa-rotate text-xs"></i> โหลดข้อมูลล่าสุด
+          </button>
+          <select id="historyFilterLevel" onchange="renderHistoryTable()" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none">
+            <option value="ALL">ทุกระดับ Triage</option>
+            <option value="1">L1 : RED</option>
+            <option value="2">L2 : ORANGE</option>
+            <option value="3">L3 : YELLOW</option>
+            <option value="4">L4 : GREEN</option>
+            <option value="5">L5 : WHITE</option>
+          </select>
+          <button onclick="exportToCSV()" title="ส่งออกเป็นไฟล์ Excel / CSV" class="bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-medium text-xs px-2.5 py-1 rounded-lg border border-emerald-500 transition flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>ส่งออก Excel (CSV)</span>
+          </button>
+          <span class="text-xs text-slate-400 font-mono">ทั้งหมด: <strong id="historyRecordCount" class="text-sky-400">0</strong> ราย</span>
+        </div>
+      </div>
+
+      <div class="overflow-y-auto flex-grow border border-slate-800 rounded-lg bg-slate-950/60">
         <table class="w-full text-left border-collapse text-xs">
-          <thead class="bg-slate-800 text-slate-300 sticky top-0">
+          <thead class="bg-slate-800/90 text-slate-300 sticky top-0 border-b border-slate-700 text-[11px]">
             <tr>
-              <th class="p-2">คิว (ID)</th>
-              <th class="p-2">HN</th>
-              <th class="p-2">ชื่อ-สกุล</th>
-              <th class="p-2">ระดับ Triage</th>
-              <th class="p-2">อาการสำคัญ</th>
+              <th class="p-2">เวลาคัดกรอง</th>
+              <th class="p-2">คิว</th>
+              <th class="p-2">ชื่อ-สกุล / HN</th>
+              <th class="p-2">อายุ/เพศ</th>
+              <th class="p-2">สัญญาณชีพ (Vitals)</th>
+              <th class="p-2">ระดับ Triage & เหตุผล</th>
+              <th class="p-2 text-center">จัดการ</th>
             </tr>
           </thead>
-          <tbody id="historyTableBody" class="divide-y divide-slate-800">
-            <tr><td colspan="5" class="p-4 text-center text-slate-500">กำลังโหลดข้อมูล...</td></tr>
-          </tbody>
+          <tbody id="historyTableBody" class="divide-y divide-slate-800/60"></tbody>
         </table>
       </div>
-      <div class="pt-3 border-t border-slate-800 text-right">
-        <button onclick="closeHistoryModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-1.5 rounded-lg text-xs">ปิดหน้าต่าง</button>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+        <button onclick="clearAllHistory()" class="text-red-400 hover:text-red-300 bg-red-950/30 hover:bg-red-900/40 border border-red-900/60 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
+          <i class="fa-solid fa-trash-can"></i> ล้างประวัติทั้งหมด
+        </button>
+        <button onclick="closeHistoryModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-1.5 rounded-lg transition font-medium">
+          ปิดหน้าต่าง
+        </button>
       </div>
     </div>
   </div>
 
+  <!-- PRINT TICKET MODAL -->
+  <div id="ticketModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-white text-slate-900 rounded-xl p-6 max-w-sm w-full shadow-2xl border-4 border-emerald-500 space-y-4">
+      <div class="text-center border-b pb-3 border-slate-200">
+        <h3 class="font-extrabold text-lg text-slate-800">โรงพยาบาลสบปราบ</h3>
+        <p class="text-xs text-slate-600">บัตรคัดแยกและลงทะเบียนผู้ป่วยฉุกเฉิน (ER Ticket)</p>
+        <p id="modalTicketTime" class="text-[11px] font-mono text-slate-500 mt-1">2026-11-10 10:00:00</p>
+      </div>
+
+      <div class="text-center space-y-2">
+        <div>
+          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">หมายเลขคิว ER</span>
+          <div id="modalQueueNo" class="text-4xl font-extrabold text-emerald-600 font-mono tracking-wider">กำลังออกคิว...</div>
+        </div>
+
+        <div class="bg-slate-100 p-2.5 rounded-lg border border-slate-200 text-left text-xs space-y-1">
+          <div class="flex justify-between items-center">
+            <span id="modalPatientName" class="font-bold text-slate-900 text-sm">นายสมชาย ใจดี</span>
+            <span id="modalHN" class="font-mono text-[11px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">HN: 66/12345</span>
+          </div>
+          <div class="text-slate-600 text-[11px]">
+            อายุ: <strong id="modalAge" class="text-slate-800">55</strong> ปี
+          </div>
+          <div class="text-slate-600 text-[11px] font-mono border-t border-slate-200 pt-1 mt-1">
+            <span class="text-slate-500">Vitals:</span> <span id="modalVitals" class="text-slate-800 font-bold">BT 37.5, HR 85, BP 120/80, SpO2 98%</span>
+          </div>
+        </div>
+
+        <div class="pt-1">
+          <div id="modalTriageLevelBadge" class="inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-emerald-600">
+            LEVEL 5 : WHITE (ผู้ป่วยไม่ฉุกเฉิน)
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">
+            เป้าหมายเวลารอตรวจ: <strong id="modalWaitTime" class="text-slate-800 font-bold">&lt; 120 นาที</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button onclick="closeModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg text-xs transition">
+          ยกเลิก
+        </button>
+        <button onclick="confirmPrint()" class="w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs shadow transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-print"></i> บันทึกและพิมพ์
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOOGLE SHEETS CONFIG MODAL -->
+  <div id="sheetsConfigModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 text-slate-100 rounded-xl p-5 max-w-lg w-full shadow-2xl border border-emerald-500/40 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 bg-emerald-600/30 rounded-lg flex items-center justify-center text-emerald-400 border border-emerald-500/30">
+            <i class="fa-solid fa-file-excel text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-slate-100">ตั้งค่าการเชื่อมต่อ Google Sheets</h3>
+            <p class="text-[11px] text-slate-400">บันทึกและดึงข้อมูลการคัดกรองจาก Google Sheet เรียลไทม์</p>
+          </div>
+        </div>
+        <button onclick="closeSheetsConfigModal()" class="text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-slate-800 transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
+          <label class="font-bold text-slate-200 block text-[11px]">
+            Google Apps Script Web App URL:
+          </label>
+          <input type="text" id="googleSheetsUrlInput" placeholder="https://script.google.com/macros/s/.../exec" 
+            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-1.5 text-xs text-emerald-400 font-mono focus:outline-none focus:border-emerald-500">
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            * คัดลอก Web App URL ที่ได้จาก Google Apps Script มาวางที่นี่เพื่อเชื่อมต่อ
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+        <button onclick="clearSheetsUrl()" class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded hover:bg-red-950/40 transition">
+          ยกเลิกการเชื่อมต่อ
+        </button>
+        <div class="flex gap-2">
+          <button onclick="closeSheetsConfigModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+            ยกเลิก
+          </button>
+          <button onclick="saveSheetsUrl()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-1.5 rounded-lg text-xs shadow transition">
+            บันทึกการตั้งค่า
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
   <script>
     let currentTriageLevel = 3;
-    let ticketSequence = 1;
+    let localSeqFallback = 1;
+    let holdTimeout = null;
+    let holdInterval = null;
+    let currentPendingRecord = null;
 
-    function updatePainDisplay(val) {
-      document.getElementById('painValueDisplay').innerText = val + ' / 10';
-    }
+    const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxG68urhNB-BYUqREvp5iyrk4C65GpUSBjNpjHhtWa9yT1CwHZGAj4D30gn0Oj0wH6r/exec";
+    let googleSheetsWebUrl = localStorage.getItem('moph_triage_google_sheets_url') || DEFAULT_SHEETS_URL;
+    window.triageHistoryList = [];
 
-    function calculateTriage() {
-      const hr = parseInt(document.getElementById('hrInput')?.value);
-      const sys = parseInt(document.getElementById('sysInput')?.value);
-      const gcs = parseInt(document.getElementById('gcsInput')?.value);
-      const pain = parseInt(document.getElementById('painInput')?.value || 0);
-      
-      const rfUnresponsive = document.getElementById('rfUnresponsive')?.checked;
-      const hrChestPain = document.getElementById('hrChestPain')?.checked;
+    window.updateQueueCountersUI = function() {
+      const q1 = document.getElementById('qCountL1');
+      const q2 = document.getElementById('qCountL2');
+      const q3 = document.getElementById('qCountL3');
+      const q4 = document.getElementById('qCountL4');
+      const q5 = document.getElementById('qCountL5');
 
-      let countRes = 0;
-      ['resLab', 'resXray', 'resCT', 'resEKG', 'resIV', 'resConsult'].forEach(id => {
-        if(document.getElementById(id)?.checked) countRes++;
+      const now = new Date();
+      const todayStr = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+
+      let c1 = 0, c2 = 0, c3 = 0, c4 = 0, c5 = 0;
+      (window.triageHistoryList || []).forEach(item => {
+        if (item.date === todayStr) {
+          const lvl = parseInt(item.level);
+          if (lvl === 1) c1++;
+          else if (lvl === 2) c2++;
+          else if (lvl === 3) c3++;
+          else if (lvl === 4) c4++;
+          else if (lvl === 5) c5++;
+        }
       });
-      document.getElementById('resourceCountDisplay').innerText = countRes;
 
-      if (rfUnresponsive || (gcs <= 8)) {
-        currentTriageLevel = 1;
-        updateUI(1, "วิกฤต (Resuscitation)");
-      } else if (hrChestPain || pain >= 7 || sys > 180) {
-        currentTriageLevel = 2;
-        updateUI(2, "ฉุกเฉินมาก (Emergency)");
-      } else if (countRes >= 2) {
-        currentTriageLevel = 3;
-        updateUI(3, "ฉุกเฉินปานกลาง (Urgent)");
-      } else if (countRes === 1) {
-        currentTriageLevel = 4;
-        updateUI(4, "ฉุกเฉินน้อย (Semi-urgent)");
-      } else {
-        currentTriageLevel = 5;
-        updateUI(5, "ไม่ฉุกเฉิน (Non-urgent)");
+      if (q1) q1.innerText = c1;
+      if (q2) q2.innerText = c2;
+      if (q3) q3.innerText = c3;
+      if (q4) q4.innerText = c4;
+      if (q5) q5.innerText = c5;
+    };
+
+    async function fetchHistoryFromGoogleSheets() {
+      if (!googleSheetsWebUrl) return;
+      try {
+        const now = new Date();
+        const todayStr = now.getFullYear() + '-' +
+          String(now.getMonth() + 1).padStart(2, '0') + '-' +
+          String(now.getDate()).padStart(2, '0');
+
+        const response = await fetch(`${googleSheetsWebUrl}?date=${todayStr}`);
+        const data = await response.json();
+
+        if (data && data.status === 'success' && Array.isArray(data.records)) {
+          window.triageHistoryList = data.records;
+          try {
+            localStorage.setItem('moph_triage_records', JSON.stringify(data.records));
+          } catch(e){}
+
+          updateQueueCountersUI();
+          updateHistoryBadge();
+          renderHistoryTable();
+        }
+      } catch (err) {
+        console.warn("Error fetching history from Google Sheets:", err);
       }
     }
 
-    function updateUI(level, text) {
+    function validateInputRange(input, min, max) {
+      if (!input || input.value === '') return;
+      let val = parseFloat(input.value);
+      if (val > max) input.value = max;
+      if (val < min) input.value = min;
+    }
+
+    function adjustValue(inputId, step, min = 0, max = 300) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      let val = parseFloat(input.value);
+      if (isNaN(val)) {
+        val = (step > 0) ? (min !== null ? min : 0) : 0;
+      } else {
+        val += step;
+      }
+      if (min !== null && val < min) val = min;
+      if (max !== null && val > max) val = max;
+      
+      if (Math.abs(step) < 1) {
+        input.value = (Math.round(val * 10) / 10).toFixed(1);
+      } else {
+        input.value = Math.round(val);
+      }
+      calculateTriage();
+    }
+
+    function startHoldAdjust(inputId, step, min = 0, max = 300, speedMs = 37.5) {
+      adjustValue(inputId, step, min, max);
+      stopHoldAdjust();
+
+      holdTimeout = setTimeout(() => {
+        holdInterval = setInterval(() => {
+          adjustValue(inputId, step, min, max);
+        }, speedMs);
+      }, 250);
+    }
+
+    function stopHoldAdjust() {
+      if (holdTimeout) {
+        clearTimeout(holdTimeout);
+        holdTimeout = null;
+      }
+      if (holdInterval) {
+        clearInterval(holdInterval);
+        holdInterval = null;
+      }
+    }
+
+    function openSheetsConfigModal() {
+      const input = document.getElementById('googleSheetsUrlInput');
+      if (input) input.value = googleSheetsWebUrl;
+      document.getElementById('sheetsConfigModal').classList.remove('hidden');
+    }
+
+    function closeSheetsConfigModal() {
+      document.getElementById('sheetsConfigModal').classList.add('hidden');
+    }
+
+    function saveSheetsUrl() {
+      const input = document.getElementById('googleSheetsUrlInput');
+      if (input) {
+        googleSheetsWebUrl = input.value.trim() || DEFAULT_SHEETS_URL;
+        localStorage.setItem('moph_triage_google_sheets_url', googleSheetsWebUrl);
+        updateSheetsStatusUI();
+        closeSheetsConfigModal();
+        fetchHistoryFromGoogleSheets();
+        alert('บันทึก URL และโหลดข้อมูลล่าสุดเรียบร้อยแล้ว!');
+      }
+    }
+
+    function clearSheetsUrl() {
+      googleSheetsWebUrl = '';
+      localStorage.removeItem('moph_triage_google_sheets_url');
+      const input = document.getElementById('googleSheetsUrlInput');
+      if (input) input.value = '';
+      updateSheetsStatusUI();
+      closeSheetsConfigModal();
+    }
+
+    function updateSheetsStatusUI() {
+      const statusEl = document.getElementById('sheetsStatusIndicator');
+      if (statusEl) {
+        if (googleSheetsWebUrl) {
+          statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-800"><i class="fa-solid fa-circle-check text-[9px] animate-pulse"></i> เชื่อมต่อ Google Sheets (ซิงค์ทุกเครื่อง)</span>`;
+        } else {
+          statusEl.innerHTML = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-950 text-amber-400 px-2 py-0.5 rounded-full border border-amber-800"><i class="fa-solid fa-database text-[9px]"></i> โหมดในเครื่อง (Local Mode)</span>`;
+        }
+      }
+    }
+
+    async function sendDataToGoogleSheets(record) {
+      if (!googleSheetsWebUrl) {
+        const localQueueNo = 'E-' + String(localSeqFallback++).padStart(3, '0');
+        return localQueueNo;
+      }
+
+      try {
+        const response = await fetch(googleSheetsWebUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(record)
+        });
+
+        const resData = await response.json();
+        if (resData && resData.status === 'success' && resData.queueNo) {
+          return resData.queueNo;
+        } else {
+          return 'E-' + String(localSeqFallback++).padStart(3, '0');
+        }
+      } catch (err) {
+        console.warn("Google Sheets fetch error, using fallback:", err);
+        return 'E-' + String(localSeqFallback++).padStart(3, '0');
+      }
+    }
+
+    function toggleThresholdPanel(panelId, textId, iconId) {
+      const panel = document.getElementById(panelId);
+      const text = document.getElementById(textId);
+      const icon = document.getElementById(iconId);
+      if (!panel) return;
+
+      if (panel.classList.contains('hidden')) {
+        panel.classList.remove('hidden');
+        if (text) text.innerText = 'ซ่อนเกณฑ์';
+        if (icon) {
+          icon.classList.remove('fa-chevron-down');
+          icon.classList.add('fa-chevron-up');
+        }
+      } else {
+        panel.classList.add('hidden');
+        if (text) text.innerText = 'แสดงเกณฑ์';
+        if (icon) {
+          icon.classList.remove('fa-chevron-up');
+          icon.classList.add('fa-chevron-down');
+        }
+      }
+    }
+
+    function updatePainDisplay(val) {
+      const display = document.getElementById('painValueDisplay');
+      if (display) {
+        display.innerText = val + ' / 10';
+        if (val >= 7) {
+          display.className = 'bg-red-600 text-white font-bold px-1.5 py-0.2 rounded text-[10px] shadow';
+        } else if (val >= 4) {
+          display.className = 'bg-amber-600 text-white font-bold px-1.5 py-0.2 rounded text-[10px] shadow';
+        } else {
+          display.className = 'bg-emerald-600 text-white font-bold px-1.5 py-0.2 rounded text-[10px] shadow';
+        }
+      }
+    }
+
+    function calculateNEWS2(rr, spo2, onO2, isHypercapnic, sbp, hr, gcs, bt) {
+      let score = 0;
+      if (rr !== null && !isNaN(rr)) {
+        if (rr <= 8) score += 3;
+        else if (rr >= 9 && rr <= 11) score += 1;
+        else if (rr >= 12 && rr <= 20) score += 0;
+        else if (rr >= 21 && rr <= 24) score += 2;
+        else if (rr >= 25) score += 3;
+      }
+      if (spo2 !== null && !isNaN(spo2)) {
+        if (isHypercapnic) {
+          if (spo2 <= 83) score += 3;
+          else if (spo2 >= 84 && spo2 <= 85) score += 2;
+          else if (spo2 >= 86 && spo2 <= 87) score += 1;
+          else if (spo2 >= 88 && spo2 <= 92) score += 0;
+          else if (spo2 >= 93 && !onO2) score += 0;
+          else if (spo2 >= 93 && spo2 <= 94 && onO2) score += 1;
+          else if (spo2 >= 95 && spo2 <= 96 && onO2) score += 2;
+          else if (spo2 >= 97 && onO2) score += 3;
+        } else {
+          if (spo2 <= 91) score += 3;
+          else if (spo2 >= 92 && spo2 <= 93) score += 2;
+          else if (spo2 >= 94 && spo2 <= 95) score += 1;
+          else if (spo2 >= 96) score += 0;
+        }
+      }
+      if (onO2) score += 2;
+      if (sbp !== null && !isNaN(sbp)) {
+        if (sbp <= 90) score += 3;
+        else if (sbp >= 91 && sbp <= 100) score += 2;
+        else if (sbp >= 101 && sbp <= 110) score += 1;
+        else if (sbp >= 111 && sbp <= 219) score += 0;
+        else if (sbp >= 220) score += 3;
+      }
+      if (hr !== null && !isNaN(hr)) {
+        if (hr <= 40) score += 3;
+        else if (hr >= 41 && hr <= 50) score += 1;
+        else if (hr >= 51 && hr <= 90) score += 0;
+        else if (hr >= 91 && hr <= 110) score += 1;
+        else if (hr >= 111 && hr <= 130) score += 2;
+        else if (hr >= 131) score += 3;
+      }
+      if (gcs !== null && !isNaN(gcs) && gcs < 15) score += 3;
+      if (bt !== null && !isNaN(bt)) {
+        if (bt <= 35.0) score += 3;
+        else if (bt >= 35.1 && bt <= 36.0) score += 1;
+        else if (bt >= 36.1 && bt <= 38.0) score += 0;
+        else if (bt >= 38.1 && bt <= 39.0) score += 1;
+        else if (bt >= 39.1) score += 2;
+      }
+      return score;
+    }
+
+    function updateRuleStatus(elementId, isViolated, customText = 'พบความผิดปกติ!') {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const statusSpan = el.querySelector('span:last-child');
+      if (!statusSpan) return;
+
+      if (isViolated) {
+        el.className = 'flex justify-between bg-red-900/80 text-white font-bold px-1.5 py-0.5 rounded border border-red-500 animate-pulse';
+        statusSpan.innerText = customText;
+        statusSpan.className = 'font-bold text-red-200';
+      } else {
+        el.className = 'flex justify-between bg-slate-900/60 px-1.5 py-0.5 rounded';
+        statusSpan.innerText = 'ปกติ';
+        statusSpan.className = 'font-bold text-slate-400';
+      }
+    }
+
+    function calculateTriage() {
+      const bt = parseFloat(document.getElementById('btInput')?.value);
+      const hr = parseInt(document.getElementById('hrInput')?.value);
+      const sys = parseInt(document.getElementById('sysInput')?.value);
+      const dia = parseInt(document.getElementById('diaInput')?.value);
+      const rr = parseInt(document.getElementById('rrInput')?.value);
+      const spo2 = parseInt(document.getElementById('spo2Input')?.value);
+      const gcs = parseInt(document.getElementById('gcsInput')?.value);
+      const pain = parseInt(document.getElementById('painInput')?.value || 0);
+      const onO2 = document.getElementById('onOxygen')?.checked || false;
+      const isHypercapnic = document.getElementById('isHypercapnic')?.checked || false;
+
+      let map = null;
+      const mapDisplay = document.getElementById('mapDisplay');
+      if (!isNaN(sys) && !isNaN(dia)) {
+        map = Math.round(dia + (sys - dia) / 3);
+        if (mapDisplay) mapDisplay.innerText = `(MAP: ${map})`;
+      } else if (mapDisplay) {
+        mapDisplay.innerText = `(MAP: --)`;
+      }
+
+      const newsScore = calculateNEWS2(rr, spo2, onO2, isHypercapnic, sys, hr, gcs, bt);
+      const newsBadgeVal = document.getElementById('newsScoreVal');
+      const newsBadge = document.getElementById('newsBadge');
+      if (newsBadgeVal) newsBadgeVal.innerText = newsScore;
+      if (newsBadge) {
+        if (newsScore >= 7) {
+          newsBadge.className = 'text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-red-900 text-red-100 border border-red-500 w-full text-center animate-pulse';
+          newsBadge.innerText = `NEWS2: ${newsScore} (High)`;
+        } else if (newsScore >= 5) {
+          newsBadge.className = 'text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-orange-900 text-orange-100 border border-orange-500 w-full text-center';
+          newsBadge.innerText = `NEWS2: ${newsScore} (Medium)`;
+        } else {
+          newsBadge.className = 'text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 w-full text-center';
+          newsBadge.innerText = `NEWS2: ${newsScore} (Low)`;
+        }
+      }
+
+      const rfUnresponsive = document.getElementById('rfUnresponsive')?.checked;
+      const rfDistress = document.getElementById('rfDistress')?.checked;
+      const rfShock = document.getElementById('rfShock')?.checked;
+
+      const hrChestPain = document.getElementById('hrChestPain')?.checked;
+      const hrStroke = document.getElementById('hrStroke')?.checked;
+      const hrPsychosis = document.getElementById('hrPsychosis')?.checked;
+
+      const resourceIDs = [
+        'resLab', 'resXray', 'resCT', 'resUS', 'resEKG', 'resIV',
+        'resNebulizer', 'resSuture', 'resNG', 'resFoley', 'resConsult', 'resTepid'
+      ];
+      let resCount = 0;
+      resourceIDs.forEach(id => {
+        if (document.getElementById(id)?.checked) resCount++;
+      });
+      const resCountDisplay = document.getElementById('resourceCountDisplay');
+      if (resCountDisplay) resCountDisplay.innerText = resCount;
+
+      updateRuleStatus('ruleGCS', !isNaN(gcs) && gcs <= 8);
+      updateRuleStatus('ruleSpO2', !isNaN(spo2) && spo2 <= 90);
+      updateRuleStatus('ruleSBP', !isNaN(sys) && sys < 90);
+      updateRuleStatus('ruleMAP', map !== null && map < 65);
+      updateRuleStatus('ruleRR', !isNaN(rr) && rr >= 28);
+      updateRuleStatus('rulePR', !isNaN(hr) && hr >= 150);
+
+      updateRuleStatus('rulePainL2', pain >= 7);
+      updateRuleStatus('ruleSbpL2', !isNaN(sys) && sys > 180);
+      updateRuleStatus('ruleHrL2', !isNaN(hr) && hr > 130);
+      updateRuleStatus('ruleGcsL2', !isNaN(gcs) && gcs >= 9 && gcs <= 12);
+      updateRuleStatus('ruleNewsL2', newsScore >= 5);
+
+      const hasResVitalsAbnormal = resCount >= 2 && ((hr > 100) || (rr > 20) || (!isNaN(spo2) && spo2 <= 92));
+      updateRuleStatus('ruleResVitalsL2', hasResVitalsAbnormal);
+
+      let calculatedLevel = 5;
+      let reason = "";
+
+      const overrideCheck = document.getElementById('overrideCheck')?.checked;
+      if (overrideCheck) {
+        calculatedLevel = parseInt(document.getElementById('overrideSelect')?.value || 3);
+        const overrideReasonInput = document.getElementById('overrideReason')?.value.trim();
+        reason = `Clinical Override: ${overrideReasonInput || 'ปรับระดับโดยการตัดสินใจของพยาบาล'}`;
+      } else {
+        if (rfUnresponsive || rfDistress || rfShock ||
+            (!isNaN(gcs) && gcs <= 8) ||
+            (!isNaN(spo2) && spo2 <= 90) ||
+            (!isNaN(sys) && sys < 90) ||
+            (map !== null && map < 65) ||
+            (!isNaN(rr) && rr >= 28) ||
+            (!isNaN(hr) && hr >= 150)) {
+          calculatedLevel = 1;
+          let reasons = [];
+          if (rfUnresponsive) reasons.push("หัวใจหยุดเต้น/ไม่รู้สึกตัว");
+          if (rfDistress) reasons.push("ทางเดินหายใจอุดกั้น/หายใจเฮือก");
+          if (rfShock) reasons.push("ภาวะช็อกรุนแรง");
+          if (!isNaN(gcs) && gcs <= 8) reasons.push("GCS ≤ 8");
+          if (!isNaN(spo2) && spo2 <= 90) reasons.push("SpO2 ≤ 90%");
+          if (!isNaN(sys) && sys < 90) reasons.push("SBP < 90");
+          if (map !== null && map < 65) reasons.push("MAP < 65");
+          if (!isNaN(rr) && rr >= 28) reasons.push("RR ≥ 28");
+          if (!isNaN(hr) && hr >= 150) reasons.push("PR ≥ 150");
+          reason = `วิกฤต (Red Flag / สัญญาณชีพอันตรายรุนแรง): ${reasons.join(", ")}`;
+        }
+        else if (hrChestPain || hrStroke || hrPsychosis || pain >= 7 ||
+                 (!isNaN(sys) && sys > 180) ||
+                 (!isNaN(hr) && hr > 130) ||
+                 (!isNaN(gcs) && gcs >= 9 && gcs <= 12) ||
+                 newsScore >= 5 ||
+                 hasResVitalsAbnormal) {
+          calculatedLevel = 2;
+          let reasons = [];
+          if (hrChestPain) reasons.push("สงสัย ACS");
+          if (hrStroke) reasons.push("สงสัย Stroke");
+          if (hrPsychosis) reasons.push("จิตเวชคลุ้มคลั่ง");
+          if (pain >= 7) reasons.push(`Pain Score ${pain}`);
+          if (!isNaN(sys) && sys > 180) reasons.push("SBP > 180");
+          if (!isNaN(hr) && hr > 130) reasons.push("HR > 130");
+          if (!isNaN(gcs) && gcs >= 9 && gcs <= 12) reasons.push(`GCS ${gcs}`);
+          if (newsScore >= 5) reasons.push(`NEWS2 Score ${newsScore}`);
+          if (hasResVitalsAbnormal) reasons.push("ทรัพยากร ≥2 ร่วมกับสัญญาณชีพผิดปกติ");
+          reason = `ฉุกเฉินมาก (High Risk / Severe Vitals): ${reasons.join(", ")}`;
+        }
+        else if (resCount >= 2) {
+          calculatedLevel = 3;
+          reason = `ใช้ทรัพยากรทางการแพทย์ ≥ 2 ชนิด (Urgent)`;
+        }
+        else if (resCount === 1) {
+          calculatedLevel = 4;
+          reason = `ใช้ทรัพยากรทางการแพทย์ 1 ชนิด (Semi-urgent)`;
+        }
+        else {
+          calculatedLevel = 5;
+          reason = `ไม่ใช้ทรัพยากรทางการแพทย์ / อาการเล็กน้อย (Non-urgent)`;
+        }
+      }
+
+      currentTriageLevel = calculatedLevel;
+      updateTriageDisplayUI(calculatedLevel, reason);
+    }
+
+    function updateTriageDisplayUI(level, reasonText) {
       const card = document.getElementById('triageResultCard');
       const badge = document.getElementById('triageBadge');
+      const badgeIcon = document.getElementById('triageBadgeIcon');
       const badgeText = document.getElementById('triageBadgeText');
-      document.getElementById('triageReasonText').innerText = text;
+      const thaiTitle = document.getElementById('triageThaiTitle');
+      const waitText = document.getElementById('targetWaitText');
+      const reasonDisplay = document.getElementById('triageReasonText');
 
-      if(level === 1) {
-        card.className = "rounded-xl p-3 border-2 shadow-xl bg-red-950/40 border-red-600 text-red-100 animate-pulse-red";
-        badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base flex items-center justify-center gap-1.5 bg-red-600 text-white";
-        badgeText.innerText = "LEVEL 1 : RED";
-      } else if(level === 2) {
-        card.className = "rounded-xl p-3 border-2 shadow-xl bg-orange-950/40 border-orange-600 text-orange-100";
-        badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base flex items-center justify-center gap-1.5 bg-orange-600 text-white";
-        badgeText.innerText = "LEVEL 2 : ORANGE";
-      } else if(level === 3) {
-        card.className = "rounded-xl p-3 border-2 shadow-xl bg-yellow-950/40 border-yellow-600 text-yellow-100";
-        badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base flex items-center justify-center gap-1.5 bg-yellow-500 text-slate-950";
-        badgeText.innerText = "LEVEL 3 : YELLOW";
-      } else {
-        card.className = "rounded-xl p-3 border-2 shadow-xl bg-emerald-950/40 border-emerald-600 text-emerald-100";
-        badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base flex items-center justify-center gap-1.5 bg-emerald-600 text-white";
-        badgeText.innerText = `LEVEL ${level}`;
+      if (!card || !badge) return;
+      if (reasonDisplay) reasonDisplay.innerText = reasonText;
+
+      switch (level) {
+        case 1:
+          card.className = "rounded-xl p-3 border-2 transition-all shadow-xl bg-red-950/40 border-red-600 text-red-100 animate-pulse-red";
+          badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base tracking-wide flex items-center justify-center gap-1.5 shadow-inner bg-red-600 text-white";
+          badgeIcon.className = "fa-solid fa-triangle-exclamation";
+          badgeText.innerText = "LEVEL 1 : RED";
+          thaiTitle.innerText = "(ผู้ป่วยวิกฤต / Resuscitation)";
+          waitText.innerText = "ทันที (0 นาที)";
+          waitText.className = "font-bold text-red-400 bg-slate-950/80 px-1.5 py-0.5 rounded text-[10px] animate-bounce";
+          break;
+        case 2:
+          card.className = "rounded-xl p-3 border-2 transition-all shadow-xl bg-orange-950/40 border-orange-600 text-orange-100";
+          badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base tracking-wide flex items-center justify-center gap-1.5 shadow-inner bg-orange-600 text-white";
+          badgeIcon.className = "fa-solid fa-bolt";
+          badgeText.innerText = "LEVEL 2 : ORANGE";
+          thaiTitle.innerText = "(ผู้ป่วยฉุกเฉินมาก / Emergency)";
+          waitText.innerText = "< 10 นาที";
+          waitText.className = "font-bold text-orange-300 bg-slate-950/80 px-1.5 py-0.5 rounded text-[10px]";
+          break;
+        case 3:
+          card.className = "rounded-xl p-3 border-2 transition-all shadow-xl bg-yellow-950/40 border-yellow-600 text-yellow-100";
+          badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base tracking-wide flex items-center justify-center gap-1.5 shadow-inner bg-yellow-500 text-slate-950";
+          badgeIcon.className = "fa-solid fa-clock";
+          badgeText.innerText = "LEVEL 3 : YELLOW";
+          thaiTitle.innerText = "(ผู้ป่วยฉุกเฉินปานกลาง / Urgent)";
+          waitText.innerText = "< 30 นาที";
+          waitText.className = "font-bold text-yellow-300 bg-slate-950/80 px-1.5 py-0.5 rounded text-[10px]";
+          break;
+        case 4:
+          card.className = "rounded-xl p-3 border-2 transition-all shadow-xl bg-emerald-950/40 border-emerald-600 text-emerald-100";
+          badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base tracking-wide flex items-center justify-center gap-1.5 shadow-inner bg-emerald-600 text-white";
+          badgeIcon.className = "fa-solid fa-user-check";
+          badgeText.innerText = "LEVEL 4 : GREEN";
+          thaiTitle.innerText = "(ผู้ป่วยฉุกเฉินน้อย / Semi-urgent)";
+          waitText.innerText = "< 60 นาที";
+          waitText.className = "font-bold text-emerald-300 bg-slate-950/80 px-1.5 py-0.5 rounded text-[10px]";
+          break;
+        case 5:
+        default:
+          card.className = "rounded-xl p-3 border-2 transition-all shadow-xl bg-blue-950/30 border-blue-600 text-blue-200";
+          badge.className = "py-1.5 px-2 rounded-lg font-extrabold text-base tracking-wide flex items-center justify-center gap-1.5 shadow-inner bg-blue-600 text-white";
+          badgeIcon.className = "fa-solid fa-circle-check";
+          badgeText.innerText = "LEVEL 5 : WHITE";
+          thaiTitle.innerText = "(ผู้ป่วยไม่ฉุกเฉิน / Non-urgent)";
+          waitText.innerText = "< 120 นาที";
+          waitText.className = "font-bold text-blue-300 bg-slate-950/80 px-1.5 py-0.5 rounded text-[10px]";
+          break;
+      }
+    }
+
+    function toggleOverride() {
+      const check = document.getElementById('overrideCheck');
+      const controls = document.getElementById('overrideControls');
+      if (check && controls) {
+        if (check.checked) {
+          controls.classList.remove('hidden');
+        } else {
+          controls.classList.add('hidden');
+        }
+      }
+      calculateTriage();
+    }
+
+    function triggerRedFlag() {
+      const rfUnresponsive = document.getElementById('rfUnresponsive');
+      if (rfUnresponsive) {
+        rfUnresponsive.checked = true;
+        calculateTriage();
+      }
+    }
+
+    function resetVitalsForm() {
+      ['btInput', 'hrInput', 'sysInput', 'diaInput', 'rrInput', 'spo2Input', 'gcsInput'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+      });
+
+      const painInput = document.getElementById('painInput');
+      if (painInput) painInput.value = 0;
+      updatePainDisplay(0);
+
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = false);
+
+      const overrideControls = document.getElementById('overrideControls');
+      if (overrideControls) overrideControls.classList.add('hidden');
+
+      clearPatientForm();
+      calculateTriage();
+    }
+
+    function clearPatientForm() {
+      const search = document.getElementById('patientSearch');
+      if (search) search.value = '';
+
+      const nameInput = document.getElementById('patientNameInput');
+      const hnInput = document.getElementById('patientHNInput');
+      const ageInput = document.getElementById('patientAgeInput');
+      const genderSelect = document.getElementById('patientGenderSelect');
+      const rights = document.getElementById('patientRights');
+
+      if (nameInput) nameInput.value = '';
+      if (hnInput) hnInput.value = '';
+      if (ageInput) ageInput.value = '';
+      if (genderSelect) genderSelect.value = 'ชาย';
+      if (rights) rights.innerText = '--';
+    }
+
+    function fillDemoData() {
+      const search = document.getElementById('patientSearch');
+      if (search) search.value = '3520100456789';
+
+      const nameInput = document.getElementById('patientNameInput');
+      const hnInput = document.getElementById('patientHNInput');
+      const ageInput = document.getElementById('patientAgeInput');
+      const genderSelect = document.getElementById('patientGenderSelect');
+      const rights = document.getElementById('patientRights');
+
+      if (nameInput) nameInput.value = 'นายสมชาย ใจดี';
+      if (hnInput) hnInput.value = '66/12345';
+      if (ageInput) ageInput.value = '55';
+      if (genderSelect) genderSelect.value = 'ชาย';
+      if (rights) rights.innerText = 'บัตรทอง (UC)';
+
+      document.getElementById('btInput').value = '37.0';
+      document.getElementById('hrInput').value = '85';
+      document.getElementById('sysInput').value = '120';
+      document.getElementById('diaInput').value = '80';
+      document.getElementById('rrInput').value = '18';
+      document.getElementById('spo2Input').value = '98';
+      document.getElementById('gcsInput').value = '15';
+
+      const painInput = document.getElementById('painInput');
+      if (painInput) painInput.value = 0;
+      updatePainDisplay(0);
+
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = false);
+
+      calculateTriage();
+    }
+
+    function handlePatientSearch(val) {
+      if (val.trim() === '66/12345' || val.trim() === '3520100456789') {
+        fillDemoData();
+      } else if (val.trim()) {
+        const nameInput = document.getElementById('patientNameInput');
+        const hnInput = document.getElementById('patientHNInput');
+        if (val.includes('/')) {
+          if (hnInput) hnInput.value = val;
+        } else if (isNaN(val)) {
+          if (nameInput) nameInput.value = val;
+        }
       }
     }
 
     async function saveAndPrintTicket() {
-      const queueNo = 'E-' + String(ticketSequence++).padStart(3, '0');
-      const record = {
-        queueNo: queueNo,
-        hn: document.getElementById('patientHNInput').value,
-        name: document.getElementById('patientNameInput').value,
+      const now = new Date();
+      const dateStr = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0');
+      const timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+        String(now.getMinutes()).padStart(2, '0') + ':' +
+        String(now.getSeconds()).padStart(2, '0');
+
+      document.getElementById('modalTicketTime').innerText = `${dateStr} ${timeStr}`;
+      document.getElementById('modalQueueNo').innerText = "กำลังออกคิว...";
+
+      const rawName = document.getElementById('patientNameInput')?.value.trim();
+      const ptName = rawName ? rawName : 'ผู้ป่วยทั่วไป';
+      
+      const rawHN = document.getElementById('patientHNInput')?.value.trim();
+      const ptHN = rawHN ? (rawHN.startsWith('HN:') ? rawHN : `HN: ${rawHN}`) : 'HN: ------';
+      const ptAge = document.getElementById('patientAgeInput')?.value || '--';
+      const ptGender = document.getElementById('patientGenderSelect')?.value || 'ชาย';
+
+      document.getElementById('modalPatientName').innerText = ptName;
+      document.getElementById('modalHN').innerText = ptHN;
+      document.getElementById('modalAge').innerText = ptAge;
+
+      const bt = document.getElementById('btInput')?.value || '--';
+      const hr = document.getElementById('hrInput')?.value || '--';
+      const sys = document.getElementById('sysInput')?.value || '--';
+      const dia = document.getElementById('diaInput')?.value || '--';
+      const rr = document.getElementById('rrInput')?.value || '--';
+      const spo2 = document.getElementById('spo2Input')?.value || '--';
+      const gcs = document.getElementById('gcsInput')?.value || '--';
+      const pain = document.getElementById('painInput')?.value || '0';
+
+      document.getElementById('modalVitals').innerText = `BT ${bt}, HR ${hr}, BP ${sys}/${dia}, SpO2 ${spo2}%`;
+
+      const badge = document.getElementById('modalTriageLevelBadge');
+      const waitTime = document.getElementById('modalWaitTime');
+
+      switch (currentTriageLevel) {
+        case 1:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-red-600';
+          badge.innerText = 'LEVEL 1 : RED (ผู้ป่วยวิกฤต)';
+          waitTime.innerText = 'ทันที (0 นาที)';
+          break;
+        case 2:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-orange-600';
+          badge.innerText = 'LEVEL 2 : ORANGE (ผู้ป่วยฉุกเฉินมาก)';
+          waitTime.innerText = '< 10 นาที';
+          break;
+        case 3:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-slate-900 font-bold text-xs shadow mt-1 bg-yellow-400';
+          badge.innerText = 'LEVEL 3 : YELLOW (ผู้ป่วยฉุกเฉินปานกลาง)';
+          waitTime.innerText = '< 30 นาที';
+          break;
+        case 4:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-emerald-600';
+          badge.innerText = 'LEVEL 4 : GREEN (ผู้ป่วยฉุกเฉินน้อย)';
+          waitTime.innerText = '< 60 นาที';
+          break;
+        case 5:
+        default:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-blue-600';
+          badge.innerText = 'LEVEL 5 : WHITE (ผู้ป่วยไม่ฉุกเฉิน)';
+          waitTime.innerText = '< 120 นาที';
+          break;
+      }
+
+      document.getElementById('ticketModal').classList.remove('hidden');
+
+      const reasonText = document.getElementById('triageReasonText')?.innerText || '';
+
+      currentPendingRecord = {
+        docId: 'local-' + Date.now(),
+        timestamp: now.getTime(),
+        date: dateStr,
+        time: timeStr,
+        name: ptName,
+        hn: ptHN,
+        age: ptAge,
+        gender: ptGender,
+        bt: bt,
+        hr: hr,
+        bp: `${sys}/${dia}`,
+        rr: rr,
+        spo2: spo2,
+        gcs: gcs,
+        pain: pain,
+        vitals: `BT:${bt} | HR:${hr} | BP:${sys}/${dia} | SpO2:${spo2}%`,
         level: currentTriageLevel,
-        reason: document.getElementById('triageReasonText').innerText,
-        vitals: `HR:${document.getElementById('hrInput').value} BP:${document.getElementById('sysInput').value}/${document.getElementById('diaInput').value}`
+        reason: reasonText
       };
 
-      if (typeof window.saveRecordToCloud === 'function') {
-        await window.saveRecordToCloud(record);
-        alert(`บันทึกคิว ${queueNo} ไปยัง Google Sheets สำเร็จ!`);
+      const generatedQueueNo = await sendDataToGoogleSheets(currentPendingRecord);
+      if (currentPendingRecord) {
+        currentPendingRecord.queueNo = generatedQueueNo;
+      }
+      const queueNoElement = document.getElementById('modalQueueNo');
+      if (queueNoElement) {
+        queueNoElement.innerText = generatedQueueNo;
       }
     }
 
+    function closeModal() {
+      document.getElementById('ticketModal').classList.add('hidden');
+      currentPendingRecord = null;
+    }
+
+    function confirmPrint() {
+      if (currentPendingRecord) {
+        window.triageHistoryList.unshift(currentPendingRecord);
+        try {
+          localStorage.setItem('moph_triage_records', JSON.stringify(window.triageHistoryList));
+        } catch(e){}
+
+        updateQueueCountersUI();
+        updateHistoryBadge();
+        
+        setTimeout(fetchHistoryFromGoogleSheets, 500);
+      }
+
+      closeModal();
+    }
+
     function openHistoryModal() {
+      fetchHistoryFromGoogleSheets();
       renderHistoryTable();
       document.getElementById('historyModal').classList.remove('hidden');
     }
@@ -484,35 +1502,252 @@
     }
 
     function updateHistoryBadge() {
-      document.getElementById('historyTotalBadge').innerText = (window.triageHistoryList || []).length;
+      const badge = document.getElementById('historyTotalBadge');
+      if (badge) badge.innerText = (window.triageHistoryList || []).length;
     }
 
     function renderHistoryTable() {
       const tbody = document.getElementById('historyTableBody');
-      tbody.innerHTML = '';
-      const list = window.triageHistoryList || [];
+      const searchVal = document.getElementById('historySearchInput')?.value.toLowerCase().trim() || '';
+      const filterLevel = document.getElementById('historyFilterLevel')?.value || 'ALL';
 
-      if(list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">ยังไม่มีข้อมูลในระบบ</td></tr>`;
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const list = window.triageHistoryList || [];
+      const filtered = list.filter(item => {
+        const matchesSearch = (item.name || '').toLowerCase().includes(searchVal) ||
+                              (item.hn || '').toLowerCase().includes(searchVal) ||
+                              (item.queueNo || '').toLowerCase().includes(searchVal) ||
+                              (item.reason || '').toLowerCase().includes(searchVal);
+        const matchesLevel = (filterLevel === 'ALL') || (item.level.toString() === filterLevel);
+        return matchesSearch && matchesLevel;
+      });
+
+      document.getElementById('historyRecordCount').innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-slate-500 italic">ไม่พบรายการคัดกรองผู้ป่วย</td></tr>`;
         return;
       }
 
-      list.forEach(item => {
+      filtered.forEach(item => {
+        let levelBadge = '';
+        switch(item.level) {
+          case 1: levelBadge = `<span class="bg-red-600 text-white font-bold px-1.5 py-0.5 rounded text-[10px] inline-block mb-1">L1 : RED</span>`; break;
+          case 2: levelBadge = `<span class="bg-orange-600 text-white font-bold px-1.5 py-0.5 rounded text-[10px] inline-block mb-1">L2 : ORANGE</span>`; break;
+          case 3: levelBadge = `<span class="bg-yellow-500 text-slate-950 font-bold px-1.5 py-0.5 rounded text-[10px] inline-block mb-1">L3 : YELLOW</span>`; break;
+          case 4: levelBadge = `<span class="bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded text-[10px] inline-block mb-1">L4 : GREEN</span>`; break;
+          case 5: levelBadge = `<span class="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded text-[10px] inline-block mb-1">L5 : WHITE</span>`; break;
+        }
+
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-900';
+        tr.className = 'hover:bg-slate-900 transition';
         tr.innerHTML = `
-          <td class="p-2 font-mono font-bold text-sky-400">${item.queueNo}</td>
-          <td class="p-2 font-mono">${item.hn}</td>
-          <td class="p-2">${item.name}</td>
-          <td class="p-2"><span class="bg-slate-800 px-2 py-0.5 rounded text-xs font-bold">Level ${item.level}</span></td>
-          <td class="p-2">${item.reason}</td>
+          <td class="p-2 font-mono text-slate-400 align-top">${item.time || item.date}</td>
+          <td class="p-2 font-mono font-bold text-sky-400 align-top">${item.queueNo || 'E-000'}</td>
+          <td class="p-2 align-top">
+            <div class="font-medium text-slate-200">${item.name}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${item.hn}</div>
+          </td>
+          <td class="p-2 text-slate-300 align-top">${item.age} ปี / ${item.gender}</td>
+          <td class="p-2 font-mono text-[10px] text-slate-400 align-top">${item.vitals}</td>
+          <td class="p-2 align-top">
+            <div>${levelBadge}</div>
+            <div class="text-[10px] text-slate-300 font-normal leading-tight max-w-xs">${item.reason || '-'}</div>
+          </td>
+          <td class="p-2 text-center align-top">
+            <button onclick="reprintTicket('${item.docId}')" title="พิมพ์บัตรคิวอีกครั้ง" class="text-sky-400 hover:text-sky-300 p-1">
+              <i class="fa-solid fa-print"></i>
+            </button>
+            <button onclick="deleteHistoryRecord('${item.docId}')" title="ลบรายการ" class="text-slate-500 hover:text-red-400 p-1 ml-1">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    window.onload = function() {
-      fetchPatientsFromGoogleSheets();
+    function deleteHistoryRecord(docId) {
+      window.triageHistoryList = (window.triageHistoryList || []).filter(item => item.docId !== docId);
+      try {
+        localStorage.setItem('moph_triage_records', JSON.stringify(window.triageHistoryList));
+      } catch(e){}
+      updateQueueCountersUI();
+      updateHistoryBadge();
+      renderHistoryTable();
+    }
+
+    function clearAllHistory() {
+      if ((window.triageHistoryList || []).length === 0) return;
+      if (confirm('คุณต้องการลบประวัติการคัดกรองผู้ป่วยทั้งหมดใช่หรือไม่?')) {
+        window.triageHistoryList = [];
+        localSeqFallback = 1;
+        try {
+          localStorage.removeItem('moph_triage_records');
+        } catch(e){}
+        updateQueueCountersUI();
+        updateHistoryBadge();
+        renderHistoryTable();
+      }
+    }
+
+    function exportToCSV() {
+      const list = window.triageHistoryList || [];
+      if (list.length === 0) {
+        alert('ไม่มีข้อมูลคัดกรองที่จะส่งออก');
+        return;
+      }
+
+      let csvContent = "\uFEFF";
+      csvContent += "วันที่,เวลา,เลขคิว,ชื่อ-สกุล,HN,อายุ,เพศ,BT(C),PR/HR(bpm),BP(mmHg),RR(/min),SpO2(%),GCS,Pain,ระดับTriage,เหตุผลคัดแยก\n";
+
+      list.forEach(item => {
+        const row = [
+          `"${item.date || ''}"`,
+          `"${item.time || ''}"`,
+          `"${item.queueNo || ''}"`,
+          `"${item.name || ''}"`,
+          `"${item.hn || ''}"`,
+          `"${item.age || ''}"`,
+          `"${item.gender || ''}"`,
+          `"${item.bt || ''}"`,
+          `"${item.hr || ''}"`,
+          `"${item.bp || ''}"`,
+          `"${item.rr || ''}"`,
+          `"${item.spo2 || ''}"`,
+          `"${item.gcs || ''}"`,
+          `"${item.pain || 0}"`,
+          `"L${item.level}"`,
+          `"${(item.reason || '').replace(/"/g, '""')}"`
+        ];
+        csvContent += row.join(",") + "\n";
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.setAttribute("href", url);
+      const fileName = `ED_Triage_Export_${new Date().toISOString().slice(0,10)}.csv`;
+      a.setAttribute("download", fileName);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const clockEl = document.getElementById('liveClock');
+      const dateEl = document.getElementById('liveDate');
+
+      if (clockEl) {
+        const timeStr = String(now.getHours()).padStart(2, '0') + ':' +
+                        String(now.getMinutes()).padStart(2, '0') + ':' +
+                        String(now.getSeconds()).padStart(2, '0');
+        clockEl.innerText = timeStr;
+      }
+
+      if (dateEl) {
+        const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+        const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+        const dayName = days[now.getDay()];
+        const dateNum = now.getDate();
+        const monthName = months[now.getMonth()];
+        const thaiYear = now.getFullYear() + 543;
+        dateEl.innerText = `วัน${dayName}ที่ ${dateNum} ${monthName} ${thaiYear}`;
+      }
+    }
+
+    function reprintTicket(docId) {
+      const list = window.triageHistoryList || [];
+      const record = list.find(item => item.docId === docId);
+      if (!record) return;
+
+      document.getElementById('modalTicketTime').innerText = record.time || record.date;
+      document.getElementById('modalQueueNo').innerText = record.queueNo || 'E-000';
+      document.getElementById('modalPatientName').innerText = record.name;
+      document.getElementById('modalHN').innerText = record.hn;
+      document.getElementById('modalAge').innerText = record.age;
+      document.getElementById('modalVitals').innerText = record.vitals;
+
+      const badge = document.getElementById('modalTriageLevelBadge');
+      const waitTime = document.getElementById('modalWaitTime');
+
+      switch (record.level) {
+        case 1:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-red-600';
+          badge.innerText = 'LEVEL 1 : RED (ผู้ป่วยวิกฤต)';
+          waitTime.innerText = 'ทันที (0 นาที)';
+          break;
+        case 2:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-orange-600';
+          badge.innerText = 'LEVEL 2 : ORANGE (ผู้ป่วยฉุกเฉินมาก)';
+          waitTime.innerText = '< 10 นาที';
+          break;
+        case 3:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-slate-900 font-bold text-xs shadow mt-1 bg-yellow-400';
+          badge.innerText = 'LEVEL 3 : YELLOW (ผู้ป่วยฉุกเฉินปานกลาง)';
+          waitTime.innerText = '< 30 นาที';
+          break;
+        case 4:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-emerald-600';
+          badge.innerText = 'LEVEL 4 : GREEN (ผู้ป่วยฉุกเฉินน้อย)';
+          waitTime.innerText = '< 60 นาที';
+          break;
+        case 5:
+        default:
+          badge.className = 'inline-block px-3 py-1 rounded-full text-white font-bold text-xs shadow mt-1 bg-blue-600';
+          badge.innerText = 'LEVEL 5 : WHITE (ผู้ป่วยไม่ฉุกเฉิน)';
+          waitTime.innerText = '< 120 นาที';
+          break;
+      }
+
+      closeHistoryModal();
+      document.getElementById('ticketModal').classList.remove('hidden');
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        const searchInput = document.getElementById('patientSearch');
+        if (searchInput) searchInput.focus();
+      }
+      else if (e.key === 'F5') {
+        e.preventDefault();
+        triggerRedFlag();
+      }
+      else if (e.key === 'F8') {
+        e.preventDefault();
+        openHistoryModal();
+      }
+      else if (e.key === 'Enter') {
+        const ticketModal = document.getElementById('ticketModal');
+        if (ticketModal && !ticketModal.classList.contains('hidden')) {
+          e.preventDefault();
+          confirmPrint();
+        }
+      }
+    });
+
+    window.onload = function () {
+      updateClock();
+      setInterval(updateClock, 1000);
+      updateSheetsStatusUI();
+
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('moph_triage_records') || '[]');
+        if (localSaved.length > 0) {
+          window.triageHistoryList = localSaved;
+        }
+      } catch(e){}
+
+      calculateTriage();
+      updateQueueCountersUI();
+      updateHistoryBadge();
+
+      fetchHistoryFromGoogleSheets();
+      setInterval(fetchHistoryFromGoogleSheets, 15000);
     };
   </script>
 </body>
