@@ -93,6 +93,10 @@
       <button onclick="openSheetsConfigModal()" title="ตั้งค่าการเชื่อมต่อ Google Sheets" class="bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold p-2 rounded-lg shadow-lg text-xs flex items-center justify-center border border-emerald-500 transition-all">
         <i class="fa-solid fa-file-excel text-sm"></i>
       </button>
+      <!-- Database Access Shortcut Button -->
+      <button onclick="openDatabasePinModal()" title="เปิด Google Sheets Database (ต้องใช้รหัสผ่าน)" class="bg-teal-700 hover:bg-teal-600 active:scale-95 text-white font-bold p-2 rounded-lg shadow-lg text-xs flex items-center justify-center border border-teal-400 transition-all">
+        <i class="fa-solid fa-database text-sm"></i>
+      </button>
       <button onclick="triggerRedFlag()" title="กดเพื่อสับสวิตช์เป็น Level 1 สัญญาณเตือนวิกฤตทันที [F5]" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg text-xs flex items-center space-x-1.5 border border-red-400 animate-pulse transition-all">
         <i class="fa-solid fa-circle-exclamation text-sm"></i>
         <span class="tracking-wider">RED FLAG (L1)</span>
@@ -666,10 +670,7 @@
         </table>
       </div>
 
-      <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-        <button onclick="clearAllHistory()" class="text-red-400 hover:text-red-300 bg-red-950/30 hover:bg-red-900/40 border border-red-900/60 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-          <i class="fa-solid fa-trash-can"></i> ล้างประวัติทั้งหมด
-        </button>
+      <div class="pt-3 border-t border-slate-800 flex justify-end items-center text-xs">
         <button onclick="closeHistoryModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-1.5 rounded-lg transition font-medium">
           ปิดหน้าต่าง
         </button>
@@ -769,6 +770,37 @@
             บันทึกการตั้งค่า
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATABASE PIN AUTH MODAL -->
+  <div id="databasePinModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-slate-900 text-slate-100 rounded-xl p-5 max-w-sm w-full shadow-2xl border border-teal-500/50 space-y-4 text-center">
+      <div class="flex flex-col items-center justify-center space-y-2 border-b border-slate-800 pb-3">
+        <div class="w-12 h-12 bg-teal-950 rounded-full flex items-center justify-center text-teal-400 border border-teal-500/40 shadow-inner">
+          <i class="fa-solid fa-lock text-xl"></i>
+        </div>
+        <h3 class="font-bold text-sm text-slate-100">ยืนยันรหัสผ่านเพื่อเข้าใช้งาน Database</h3>
+        <p class="text-[11px] text-slate-400 leading-tight">กรุณากรอกรหัสผ่านเพื่อไปยัง Google Sheets Database</p>
+      </div>
+
+      <div class="space-y-2">
+        <input type="password" id="dbPinInput" maxlength="10" placeholder="กรอกรหัสผ่าน..." 
+          onkeydown="if(event.key==='Enter') verifyDatabasePin()"
+          class="w-full text-center tracking-widest bg-slate-950 border border-slate-700 rounded-lg py-2 text-base text-teal-300 font-mono font-bold focus:outline-none focus:border-teal-400 transition">
+        <div id="dbPinErrorMsg" class="text-[11px] text-red-400 hidden font-bold">
+          <i class="fa-solid fa-circle-exclamation mr-1"></i> รหัสผ่านไม่ถูกต้อง!
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end space-x-2 border-t border-slate-800">
+        <button onclick="closeDatabasePinModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-1.5 rounded-lg text-xs transition">
+          ยกเลิก
+        </button>
+        <button onclick="verifyDatabasePin()" class="w-1/2 bg-teal-600 hover:bg-teal-500 text-white font-bold py-1.5 rounded-lg text-xs shadow transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> ยืนยัน
+        </button>
       </div>
     </div>
   </div>
@@ -899,6 +931,39 @@
 
     function closeSheetsConfigModal() {
       document.getElementById('sheetsConfigModal').classList.add('hidden');
+    }
+
+    const GOOGLE_SHEET_DATABASE_URL = "https://docs.google.com/spreadsheets/d/1Jiya30w_hHGx61Dc2baipf_QBB30pCv6ayRqHC1QC2M/edit?gid=0#gid=0";
+    const DATABASE_PASSCODE = "11155";
+
+    function openDatabasePinModal() {
+      const pinInput = document.getElementById('dbPinInput');
+      const errorMsg = document.getElementById('dbPinErrorMsg');
+      if (pinInput) pinInput.value = '';
+      if (errorMsg) errorMsg.classList.add('hidden');
+      document.getElementById('databasePinModal').classList.remove('hidden');
+      setTimeout(() => { if (pinInput) pinInput.focus(); }, 100);
+    }
+
+    function closeDatabasePinModal() {
+      document.getElementById('databasePinModal').classList.add('hidden');
+    }
+
+    function verifyDatabasePin() {
+      const pinInput = document.getElementById('dbPinInput');
+      const errorMsg = document.getElementById('dbPinErrorMsg');
+      const enteredPin = pinInput ? pinInput.value.trim() : '';
+
+      if (enteredPin === DATABASE_PASSCODE) {
+        closeDatabasePinModal();
+        window.open(GOOGLE_SHEET_DATABASE_URL, '_blank');
+      } else {
+        if (errorMsg) errorMsg.classList.remove('hidden');
+        if (pinInput) {
+          pinInput.value = '';
+          pinInput.focus();
+        }
+      }
     }
 
     function saveSheetsUrl() {
@@ -1597,37 +1662,10 @@
             <button onclick="reprintTicket('${item.docId}')" title="พิมพ์บัตรคิวอีกครั้ง" class="text-sky-400 hover:text-sky-300 p-1">
               <i class="fa-solid fa-print"></i>
             </button>
-            <button onclick="deleteHistoryRecord('${item.docId}')" title="ลบรายการ" class="text-slate-500 hover:text-red-400 p-1 ml-1">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
           </td>
         `;
         tbody.appendChild(tr);
       });
-    }
-
-    function deleteHistoryRecord(docId) {
-      window.triageHistoryList = (window.triageHistoryList || []).filter(item => item.docId !== docId);
-      try {
-        localStorage.setItem('moph_triage_records', JSON.stringify(window.triageHistoryList));
-      } catch(e){}
-      updateQueueCountersUI();
-      updateHistoryBadge();
-      renderHistoryTable();
-    }
-
-    function clearAllHistory() {
-      if ((window.triageHistoryList || []).length === 0) return;
-      if (confirm('คุณต้องการลบประวัติการคัดกรองผู้ป่วยทั้งหมดใช่หรือไม่?')) {
-        window.triageHistoryList = [];
-        localSeqFallback = 1;
-        try {
-          localStorage.removeItem('moph_triage_records');
-        } catch(e){}
-        updateQueueCountersUI();
-        updateHistoryBadge();
-        renderHistoryTable();
-      }
     }
 
     function exportToCSV() {
