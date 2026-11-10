@@ -544,7 +544,7 @@
               <option value="4">LEVEL 4 : GREEN (ผู้ป่วยฉุกเฉินน้อย)</option>
               <option value="5">LEVEL 5 : WHITE (ผู้ป่วยไม่ฉุกเฉิน)</option>
             </select>
-            <input type="text" id="overrideReason" placeholder="ระบุเหตุผลการปรับระดับ..." class="w-full bg-slate-900 border border-slate-700 rounded text-[11px] p-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
+            <input type="text" id="overrideReason" oninput="calculateTriage()" placeholder="ระบุเหตุผลการปรับระดับ..." class="w-full bg-slate-900 border border-slate-700 rounded text-[11px] p-1.5 text-slate-200 focus:outline-none focus:border-sky-500">
           </div>
         </div>
 
