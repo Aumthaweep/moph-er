@@ -1234,9 +1234,39 @@
 
       const overrideCheck = document.getElementById('overrideCheck')?.checked;
       if (overrideCheck) {
+        // Step 1: Calculate auto level first to preserve original system decision
+        let autoLevel = 5;
+
+        if (rfUnresponsive || rfDistress || rfShock ||
+            (!isNaN(gcs) && gcs <= 8) ||
+            (!isNaN(spo2) && spo2 <= 90) ||
+            (!isNaN(sys) && sys < 90) ||
+            (map !== null && map < 65) ||
+            (!isNaN(rr) && rr >= 28) ||
+            (!isNaN(hr) && hr >= 150)) {
+          autoLevel = 1;
+        } else if (hrChestPain || hrStroke || hrPsychosis || isPainLevel2 ||
+                 (!isNaN(sys) && sys > 180) ||
+                 (!isNaN(hr) && hr > 130) ||
+                 (!isNaN(gcs) && gcs >= 9 && gcs <= 12) ||
+                 newsScore >= 5 ||
+                 hasResVitalsAbnormal) {
+          autoLevel = 2;
+        } else if (pain >= 7 && !painVitalOrgans) {
+          autoLevel = 3;
+        } else if (resCount >= 2) {
+          autoLevel = 3;
+        } else if (resCount === 1) {
+          autoLevel = 4;
+        } else {
+          autoLevel = 5;
+        }
+
         calculatedLevel = parseInt(document.getElementById('overrideSelect')?.value || 3);
         const overrideReasonInput = document.getElementById('overrideReason')?.value.trim();
-        reason = `Clinical Override: ${overrideReasonInput || 'ปรับระดับโดยการตัดสินใจของพยาบาล'}`;
+        const nurseReasonStr = overrideReasonInput ? `เหตุผลพยาบาล: "${overrideReasonInput}"` : 'ปรับระดับตามดุลยพินิจพยาบาล';
+        
+        reason = `[Clinical Override] ${nurseReasonStr} | (คำนวณเดิมได้ Level ${autoLevel})`;
       } else {
         if (rfUnresponsive || rfDistress || rfShock ||
             (!isNaN(gcs) && gcs <= 8) ||
