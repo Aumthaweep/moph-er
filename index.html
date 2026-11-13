@@ -97,7 +97,7 @@
       <button onclick="openDatabasePinModal()" title="เปิด Google Sheets Database (ต้องใช้รหัสผ่าน)" class="bg-teal-700 hover:bg-teal-600 active:scale-95 text-white font-bold p-2 rounded-lg shadow-lg text-xs flex items-center justify-center border border-teal-400 transition-all">
         <i class="fa-solid fa-database text-sm"></i>
       </button>
-      <button onclick="triggerRedFlag()" title="กดเพื่อสับสวิตช์เป็น Level 1 สัญญาณเตือนวิกฤตทันที [F5]" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg text-xs flex items-center space-x-1.5 border border-red-400 animate-pulse transition-all">
+      <button onclick="triggerRedFlag()" title="กดเพื่อสับสวิตช์เป็น Level 1 สัญญาณเตือนวิกฤตทันที [F4]" class="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg text-xs flex items-center space-x-1.5 border border-red-400 animate-pulse transition-all">
         <i class="fa-solid fa-circle-exclamation text-sm"></i>
         <span class="tracking-wider">RED FLAG (L1)</span>
       </button>
@@ -325,8 +325,8 @@
 
       <div class="pt-2 text-[10px] text-slate-500 flex justify-between border-t border-slate-800/80 mt-2">
         <span><i class="fa-solid fa-keyboard mr-1"></i> [F1] ค้นหา</span>
-        <span>[F5] Red Flag</span>
-        <span>[Enter] ออกคิว</span>
+        <span>[F4] Red Flag</span>
+        <span>[F5] ออกคิว</span>
       </div>
     </section>
 
@@ -599,8 +599,8 @@
   <footer class="bg-slate-950 border-t border-slate-800 px-3 py-1 text-[11px] text-slate-400 flex flex-wrap justify-between items-center gap-2 shrink-0">
     <div class="flex gap-3">
       <span><strong class="text-slate-200">[F1]</strong> ค้นหาผู้ป่วย</span>
-      <span><strong class="text-slate-200">[F5]</strong> สั่งการ Red Flag ด่วน</span>
-      <span><strong class="text-slate-200">[Enter]</strong> ออกบัตรคิว</span>
+      <span><strong class="text-slate-200">[F4]</strong> สั่งการ Red Flag ด่วน</span>
+      <span><strong class="text-slate-200">[F5]</strong> ออกบัตรคิว</span>
       <span><strong class="text-slate-200">[F8]</strong> รายชื่อผู้ป่วยคัดกรองแล้ว</span>
     </div>
     <div class="text-slate-500 text-[10px]">
@@ -1880,38 +1880,32 @@
         const searchInput = document.getElementById('patientSearch');
         if (searchInput) searchInput.focus();
       }
-      else if (e.key === 'F5') {
+      else if (e.key === 'F4') {
         e.preventDefault();
         triggerRedFlag();
       }
-      else if (e.key === 'F8') {
+      else if (e.key === 'F5') {
         e.preventDefault();
-        openHistoryModal();
-      }
-      else if (e.key === 'Enter') {
         const ticketModal = document.getElementById('ticketModal');
         const dbPinModal = document.getElementById('databasePinModal');
         const configModal = document.getElementById('sheetsConfigModal');
         const historyModal = document.getElementById('historyModal');
 
-        // Check if any secondary modals are open
-        if (dbPinModal && !dbPinModal.classList.contains('hidden')) {
-          // Handled by input event inside modal
-          return;
-        }
-        if (configModal && !configModal.classList.contains('hidden')) {
-          return;
-        }
-        if (historyModal && !historyModal.classList.contains('hidden')) {
+        if ((dbPinModal && !dbPinModal.classList.contains('hidden')) ||
+            (configModal && !configModal.classList.contains('hidden')) ||
+            (historyModal && !historyModal.classList.contains('hidden'))) {
           return;
         }
 
-        e.preventDefault();
         if (ticketModal && !ticketModal.classList.contains('hidden')) {
           confirmPrint();
         } else {
           saveAndPrintTicket();
         }
+      }
+      else if (e.key === 'F8') {
+        e.preventDefault();
+        openHistoryModal();
       }
     });
 
